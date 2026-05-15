@@ -2,16 +2,21 @@
 
 namespace Database\Factories;
 
-use App\Models\User;
+use App\Models\Owner;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
- * @extends Factory<User>
+ * @extends Factory<Owner>
  */
-class UserFactory extends Factory
+class OwnerFactory extends Factory
 {
+    /**
+     * The model the factory corresponds to.
+     */
+    protected $model = Owner::class;
+
     /**
      * The current password being used by the factory.
      */
