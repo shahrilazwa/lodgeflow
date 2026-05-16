@@ -1,24 +1,29 @@
 <?php
 
-namespace App\Modules\Property\Models;
+namespace App\Modules\Unit\Models;
 
 use App\Models\Owner;
-use App\Modules\Unit\Models\Unit;
-use Database\Factories\PropertyFactory;
+use App\Modules\Property\Models\Property;
+use Database\Factories\UnitFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Property extends Model
+class Unit extends Model
 {
-    /** @use HasFactory<PropertyFactory> */
+    /** @use HasFactory<UnitFactory> */
     use HasFactory;
+
+    /**
+     * Valid unit types.
+     */
+    public const TYPES = ['room', 'suite', 'dormitory_bed', 'entire_unit'];
 
     protected $fillable = [
         'owner_id',
+        'property_id',
         'name',
-        'address',
+        'type',
         'description',
         'is_active',
     ];
@@ -30,12 +35,9 @@ class Property extends Model
         ];
     }
 
-    /**
-     * Create a new factory instance for the model.
-     */
-    protected static function newFactory(): PropertyFactory
+    protected static function newFactory(): UnitFactory
     {
-        return PropertyFactory::new();
+        return UnitFactory::new();
     }
 
     public function owner(): BelongsTo
@@ -43,8 +45,8 @@ class Property extends Model
         return $this->belongsTo(Owner::class);
     }
 
-    public function units(): HasMany
+    public function property(): BelongsTo
     {
-        return $this->hasMany(Unit::class);
+        return $this->belongsTo(Property::class);
     }
 }

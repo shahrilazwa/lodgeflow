@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Modules\Property\Controllers\PropertyController;
+use App\Modules\Unit\Controllers\UnitController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -49,4 +50,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/properties/{id}', [PropertyController::class, 'destroy']);
     Route::patch('/properties/{id}/deactivate', [PropertyController::class, 'deactivate']);
     Route::patch('/properties/{id}/activate', [PropertyController::class, 'activate']);
+
+    // Units (nested under properties for creation/listing)
+    Route::get('/properties/{propertyId}/units', [UnitController::class, 'index']);
+    Route::post('/properties/{propertyId}/units', [UnitController::class, 'store']);
+
+    // Units (standalone for show/update/deactivate/activate)
+    Route::get('/units/{id}', [UnitController::class, 'show']);
+    Route::put('/units/{id}', [UnitController::class, 'update']);
+    Route::patch('/units/{id}', [UnitController::class, 'update']);
+    Route::patch('/units/{id}/deactivate', [UnitController::class, 'deactivate']);
+    Route::patch('/units/{id}/activate', [UnitController::class, 'activate']);
 });
