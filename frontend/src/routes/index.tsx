@@ -29,7 +29,14 @@ import CleaningTasksPage from '@/features/cleaning-tasks/CleaningTasksPage'
 import MaintenanceTasksPage from '@/features/maintenance-tasks/MaintenanceTasksPage'
 import MaintenanceTaskFormPage from '@/features/maintenance-tasks/MaintenanceTaskFormPage'
 
+import LandingPage from '@/features/landing/LandingPage'
+
 export const router = createBrowserRouter([
+  // Public landing page (no layout wrapper — standalone)
+  {
+    path: '/',
+    element: <LandingPage />,
+  },
   {
     element: <PublicLayout />,
     children: [
@@ -40,7 +47,6 @@ export const router = createBrowserRouter([
   {
     element: <ProtectedLayout />,
     children: [
-      { path: '/', element: <DashboardPage /> },
       { path: '/dashboard', element: <DashboardPage /> },
 
       // Properties
