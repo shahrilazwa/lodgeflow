@@ -3,6 +3,7 @@
 namespace App\Modules\Booking\Services;
 
 use App\Modules\Booking\Models\Booking;
+use App\Modules\CleaningTask\Jobs\CreateCleaningTaskJob;
 use App\Modules\Property\Models\Property;
 use App\Modules\Unit\Models\Unit;
 use Illuminate\Database\Eloquent\Collection;
@@ -211,9 +212,9 @@ class BookingService
 
         $booking->update(['status' => Booking::STATUS_CHECKED_OUT]);
 
-        // TODO: Dispatch CreateCleaningTaskJob in Task 5.1
-        // CreateCleaningTaskJob::dispatch($booking->id, $booking->unit_id, $booking->owner_id)
-        //     ->onQueue('cleaning-tasks');
+        // Dispatch background job to create cleaning task
+        CreateCleaningTaskJob::dispatch($booking->id, $booking->unit_id, $booking->owner_id)
+            ->onQueue('cleaning-tasks');
 
         return $booking->fresh()->load(['unit', 'guest']);
     }
