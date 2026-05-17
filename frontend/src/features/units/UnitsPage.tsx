@@ -1,4 +1,5 @@
-import { useParams, Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
+import { Button, ButtonLink, ContentCard, EmptyState, PageHeader, PageLayout, StatusBadge } from '@/components/ui/Page'
 import { useUnitsForProperty, useDeactivateUnit, useActivateUnit } from './api'
 import { useProperty } from '@/features/properties/api'
 import { UNIT_TYPE_LABELS } from './types'
@@ -12,57 +13,71 @@ export default function UnitsPage() {
   const deactivate = useDeactivateUnit()
   const activate = useActivateUnit()
 
-  if (isLoading) return <div>Loading units...</div>
-  if (error) return <div style={{ color: 'red' }}>Error loading units.</div>
+  if (isLoading) {
+    return (
+      <PageLayout>
+        <PageHeader title="Units" description="Loading unit records..." backTo="/properties" backLabel="Back to Properties" />
+        <ContentCard>Loading units...</ContentCard>
+      </PageLayout>
+    )
+  }
+
+  if (error) {
+    return (
+      <PageLayout>
+        <PageHeader title="Units" description="Manage rooms and rentable spaces." backTo="/properties" backLabel="Back to Properties" />
+        <ContentCard>
+          <p style={{ margin: 0, color: '#dc2626' }}>Error loading units.</p>
+        </ContentCard>
+      </PageLayout>
+    )
+  }
 
   return (
-    <div>
-      <div style={{ marginBottom: '1rem' }}>
-        <Link to="/properties" style={{ color: '#555', fontSize: '0.875rem' }}>← Back to Properties</Link>
-      </div>
-
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h2 style={{ margin: 0 }}>Units — {property?.name || `Property #${pid}`}</h2>
-        <Link to={`/properties/${pid}/units/create`} style={linkButtonStyle}>+ New Unit</Link>
-      </div>
+    <PageLayout>
+      <PageHeader
+        eyebrow="Units"
+        title={property?.name ? `Units — ${property.name}` : `Units — Property #${pid}`}
+        description="Manage rooms, beds, halls and other rentable spaces under this property."
+        backTo="/properties"
+        backLabel="Back to Properties"
+        action={<ButtonLink to={`/properties/${pid}/units/create`} variant="primary">+ New Unit</ButtonLink>}
+      />
 
       {units && units.length === 0 && (
-        <p style={{ color: '#666' }}>No units yet. Create your first unit for this property.</p>
+        <EmptyState
+          title="No units yet"
+          description="Create your first unit for this property so it can be used in bookings and operations."
+          action={<ButtonLink to={`/properties/${pid}/units/create`} variant="primary">+ New Unit</ButtonLink>}
+        />
       )}
 
-      <div style={{ display: 'grid', gap: '0.75rem' }}>
+      <div style={{ display: 'grid', gap: '14px' }}>
         {units?.map((unit: Unit) => (
-          <div key={unit.id} style={cardStyle}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <ContentCard key={unit.id}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px' }}>
               <div>
-                <h4 style={{ margin: '0 0 0.25rem' }}>{unit.name}</h4>
-                <span style={typeBadge}>{UNIT_TYPE_LABELS[unit.type]}</span>
-                {unit.description && <p style={{ margin: '0.25rem 0 0', color: '#777', fontSize: '0.8rem' }}>{unit.description}</p>}
+                <Link to={`/units/${unit.id}`} style={{ textDecoration: 'none', color: '#18181b' }}>
+                  <h2 style={{ margin: '0 0 6px', fontSize: '1rem', fontWeight: 800 }}>{unit.name}</h2>
+                </Link>
+                <StatusBadge tone="info">{UNIT_TYPE_LABELS[unit.type]}</StatusBadge>
+                {unit.description && <p style={{ margin: '8px 0 0', color: '#71717a', fontSize: '0.8rem' }}>{unit.description}</p>}
               </div>
-              <span style={unit.is_active ? badgeActive : badgeInactive}>
-                {unit.is_active ? 'Active' : 'Inactive'}
-              </span>
+              <StatusBadge tone={unit.is_active ? 'success' : 'danger'}>{unit.is_active ? 'Active' : 'Inactive'}</StatusBadge>
             </div>
-            <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
-              <Link to={`/units/${unit.id}`} style={smallBtnStyle}>View</Link>
-              <Link to={`/units/${unit.id}/edit`} style={smallBtnStyle}>Edit</Link>
+
+            <div style={{ marginTop: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <ButtonLink to={`/units/${unit.id}`} size="sm">View</ButtonLink>
+              <ButtonLink to={`/units/${unit.id}/edit`} size="sm">Edit</ButtonLink>
               {unit.is_active ? (
-                <button type="button" style={smallBtnDanger} onClick={() => deactivate.mutate(unit.id)}>Deactivate</button>
+                <Button size="sm" variant="danger" onClick={() => deactivate.mutate(unit.id)}>Deactivate</Button>
               ) : (
-                <button type="button" style={smallBtnStyle} onClick={() => activate.mutate(unit.id)}>Activate</button>
+                <Button size="sm" onClick={() => activate.mutate(unit.id)}>Activate</Button>
               )}
             </div>
-          </div>
+          </ContentCard>
         ))}
       </div>
-    </div>
+    </PageLayout>
   )
 }
-
-const cardStyle: React.CSSProperties = { border: '1px solid #e0e0e0', borderRadius: '0.5rem', padding: '1rem', backgroundColor: '#fff' }
-const badgeActive: React.CSSProperties = { backgroundColor: '#d4edda', color: '#155724', padding: '0.2rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem', fontWeight: 600 }
-const badgeInactive: React.CSSProperties = { backgroundColor: '#f8d7da', color: '#721c24', padding: '0.2rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem', fontWeight: 600 }
-const typeBadge: React.CSSProperties = { backgroundColor: '#e8f4fd', color: '#0c5460', padding: '0.15rem 0.4rem', borderRadius: '0.2rem', fontSize: '0.7rem', fontWeight: 500 }
-const linkButtonStyle: React.CSSProperties = { padding: '0.5rem 1rem', backgroundColor: '#1a1a2e', color: '#fff', borderRadius: '0.375rem', textDecoration: 'none', fontSize: '0.875rem' }
-const smallBtnStyle: React.CSSProperties = { padding: '0.25rem 0.5rem', border: '1px solid #ccc', borderRadius: '0.25rem', fontSize: '0.75rem', cursor: 'pointer', textDecoration: 'none', color: '#333', backgroundColor: '#fff' }
-const smallBtnDanger: React.CSSProperties = { ...smallBtnStyle, color: '#dc3545', borderColor: '#dc3545' }

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { Button, ContentCard, Field, PageHeader, PageLayout, TextArea, TextInput } from '@/components/ui/Page'
 import { useCreateUnit, useUnit, useUpdateUnit } from './api'
 import { UNIT_TYPES, UNIT_TYPE_LABELS } from './types'
 import type { UnitType } from './types'
@@ -21,7 +22,6 @@ export default function UnitFormPage() {
   const [errors, setErrors] = useState<Record<string, string[]>>({})
   const [initialized, setInitialized] = useState(false)
 
-  // Populate form when editing
   if (isEdit && existing && !initialized) {
     setName(existing.name)
     setType(existing.type)
@@ -29,11 +29,18 @@ export default function UnitFormPage() {
     setInitialized(true)
   }
 
-  if (isEdit && isLoading) return <div>Loading...</div>
-
   const backPath = isEdit && existing
     ? `/properties/${existing.property_id}/units`
     : `/properties/${propertyId}/units`
+
+  if (isEdit && isLoading) {
+    return (
+      <PageLayout width="narrow">
+        <PageHeader title="Unit" description="Loading unit form..." backTo={backPath} backLabel="Back to Units" />
+        <ContentCard>Loading...</ContentCard>
+      </PageLayout>
+    )
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -58,50 +65,41 @@ export default function UnitFormPage() {
   const isPending = createMutation.isPending || updateMutation.isPending
 
   return (
-    <div style={{ maxWidth: '500px' }}>
-      <div style={{ marginBottom: '1rem' }}>
-        <a href={backPath} onClick={(e) => { e.preventDefault(); navigate(backPath) }} style={{ color: '#555', fontSize: '0.875rem' }}>← Back to Units</a>
-      </div>
+    <PageLayout width="narrow">
+      <PageHeader
+        eyebrow="Unit"
+        title={isEdit ? 'Edit Unit' : 'Create Unit'}
+        description={isEdit ? 'Update unit details used for bookings and operations.' : 'Create a room, bed, hall or rentable space under this property.'}
+        backTo={backPath}
+        backLabel="Back to Units"
+      />
 
-      <h2>{isEdit ? 'Edit Unit' : 'Create Unit'}</h2>
+      <ContentCard>
+        <form onSubmit={handleSubmit}>
+          <Field label="Name" htmlFor="name" required error={errors.name?.[0]}>
+            <TextInput id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} maxLength={100} />
+          </Field>
 
-      <form onSubmit={handleSubmit}>
-        <div style={fieldStyle}>
-          <label htmlFor="name" style={labelStyle}>Name *</label>
-          <input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} style={inputStyle} maxLength={100} />
-          {errors.name && <p style={errorStyle}>{errors.name[0]}</p>}
-        </div>
+          <Field label="Type" htmlFor="type" required error={errors.type?.[0]}>
+            <select id="type" value={type} onChange={(e) => setType(e.target.value as UnitType)} className="ui-input">
+              {UNIT_TYPES.map((t) => (
+                <option key={t} value={t}>{UNIT_TYPE_LABELS[t]}</option>
+              ))}
+            </select>
+          </Field>
 
-        <div style={fieldStyle}>
-          <label htmlFor="type" style={labelStyle}>Type *</label>
-          <select id="type" value={type} onChange={(e) => setType(e.target.value as UnitType)} style={inputStyle}>
-            {UNIT_TYPES.map((t) => (
-              <option key={t} value={t}>{UNIT_TYPE_LABELS[t]}</option>
-            ))}
-          </select>
-          {errors.type && <p style={errorStyle}>{errors.type[0]}</p>}
-        </div>
+          <Field label="Description" htmlFor="description" error={errors.description?.[0]}>
+            <TextArea id="description" value={description} onChange={(e) => setDescription(e.target.value)} maxLength={500} />
+          </Field>
 
-        <div style={fieldStyle}>
-          <label htmlFor="description" style={labelStyle}>Description</label>
-          <textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} style={{ ...inputStyle, minHeight: '80px' }} maxLength={500} />
-          {errors.description && <p style={errorStyle}>{errors.description[0]}</p>}
-        </div>
-
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button type="submit" disabled={isPending} style={submitBtnStyle}>
-            {isPending ? 'Saving...' : isEdit ? 'Update' : 'Create'}
-          </button>
-          <button type="button" onClick={() => navigate(backPath)} style={cancelBtnStyle}>Cancel</button>
-        </div>
-      </form>
-    </div>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <Button type="submit" disabled={isPending} variant="primary">
+              {isPending ? 'Saving...' : isEdit ? 'Update Unit' : 'Create Unit'}
+            </Button>
+            <Button type="button" onClick={() => navigate(backPath)}>Cancel</Button>
+          </div>
+        </form>
+      </ContentCard>
+    </PageLayout>
   )
 }
-
-const fieldStyle: React.CSSProperties = { marginBottom: '1rem' }
-const labelStyle: React.CSSProperties = { display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', fontWeight: 500 }
-const inputStyle: React.CSSProperties = { width: '100%', padding: '0.5rem', border: '1px solid #ccc', borderRadius: '0.375rem', fontSize: '0.875rem', boxSizing: 'border-box' }
-const errorStyle: React.CSSProperties = { color: '#dc3545', fontSize: '0.8rem', margin: '0.25rem 0 0' }
-const submitBtnStyle: React.CSSProperties = { padding: '0.5rem 1.5rem', backgroundColor: '#1a1a2e', color: '#fff', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem' }
-const cancelBtnStyle: React.CSSProperties = { padding: '0.5rem 1.5rem', backgroundColor: '#fff', color: '#333', border: '1px solid #ccc', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem' }
