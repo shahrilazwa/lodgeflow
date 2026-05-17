@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Modules\Booking\Controllers\BookingController;
+use App\Modules\Expense\Controllers\ExpenseController;
 use App\Modules\Guest\Controllers\GuestController;
 use App\Modules\Payment\Controllers\PaymentController;
 use App\Modules\Property\Controllers\PropertyController;
@@ -95,4 +96,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/service-providers/{id}', [ServiceProviderController::class, 'update']);
     Route::patch('/service-providers/{id}', [ServiceProviderController::class, 'update']);
     Route::delete('/service-providers/{id}', [ServiceProviderController::class, 'destroy']);
+
+    // Expenses
+    Route::get('/expenses', [ExpenseController::class, 'index']);
+    Route::post('/expenses', [ExpenseController::class, 'store']);
+    Route::get('/expenses/{id}', [ExpenseController::class, 'show']);
+    Route::put('/expenses/{id}', [ExpenseController::class, 'update']);
+    Route::patch('/expenses/{id}', [ExpenseController::class, 'update']);
+    Route::delete('/expenses/{id}', [ExpenseController::class, 'destroy']);
 });
