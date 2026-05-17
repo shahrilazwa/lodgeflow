@@ -1,65 +1,89 @@
 import { Link } from 'react-router-dom'
-import { useProperties, useDeactivateProperty, useActivateProperty, useDeleteProperty } from './api'
+import {
+  Button,
+  ButtonLink,
+  ContentCard,
+  EmptyState,
+  PageHeader,
+  PageLayout,
+  StatusBadge,
+} from '@/components/ui/Page'
+import { useProperties, useDeactivateProperty, useActivateProperty } from './api'
 import type { Property } from './types'
 
 export default function PropertiesPage() {
   const { data: properties, isLoading, error } = useProperties()
   const deactivate = useDeactivateProperty()
   const activate = useActivateProperty()
-  const deleteProp = useDeleteProperty()
 
-  if (isLoading) return <div>Loading properties...</div>
-  if (error) return <div style={{ color: 'red' }}>Error loading properties.</div>
+  if (isLoading) {
+    return (
+      <PageLayout>
+        <PageHeader title="Properties" description="Loading property records..." />
+        <ContentCard>Loading properties...</ContentCard>
+      </PageLayout>
+    )
+  }
+
+  if (error) {
+    return (
+      <PageLayout>
+        <PageHeader title="Properties" description="Manage your accommodation locations." />
+        <ContentCard>
+          <p style={{ margin: 0, color: '#dc2626' }}>Error loading properties.</p>
+        </ContentCard>
+      </PageLayout>
+    )
+  }
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h2 style={{ margin: 0 }}>Properties</h2>
-        <Link to="/properties/create" style={linkButtonStyle}>+ New Property</Link>
-      </div>
+    <PageLayout>
+      <PageHeader
+        eyebrow="Workspace"
+        title="Properties"
+        description="Manage your accommodation locations before setting up units, bookings and operations."
+        action={<ButtonLink to="/properties/create" variant="primary">+ New Property</ButtonLink>}
+      />
 
       {properties && properties.length === 0 && (
-        <p style={{ color: '#666' }}>No properties yet. Create your first property to get started.</p>
+        <EmptyState
+          title="No properties yet"
+          description="Create your first property to start setting up rooms, guests, bookings and daily operations."
+          action={<ButtonLink to="/properties/create" variant="primary">+ New Property</ButtonLink>}
+        />
       )}
 
-      <div style={{ display: 'grid', gap: '1rem' }}>
+      <div style={{ display: 'grid', gap: '14px' }}>
         {properties?.map((property: Property) => (
-          <div key={property.id} style={cardStyle}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <ContentCard key={property.id}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px' }}>
               <div>
-                <Link to={`/properties/${property.id}`} style={{ textDecoration: 'none', color: '#1a1a2e' }}>
-                  <h3 style={{ margin: '0 0 0.25rem' }}>{property.name}</h3>
+                <Link to={`/properties/${property.id}`} style={{ textDecoration: 'none', color: '#18181b' }}>
+                  <h2 style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: 800 }}>{property.name}</h2>
                 </Link>
-                <p style={{ margin: '0 0 0.25rem', color: '#555', fontSize: '0.875rem' }}>{property.address}</p>
+                <p style={{ margin: '0 0 4px', color: '#52525b', fontSize: '0.86rem' }}>{property.address}</p>
                 {property.description && (
-                  <p style={{ margin: 0, color: '#777', fontSize: '0.8rem' }}>{property.description}</p>
+                  <p style={{ margin: 0, color: '#71717a', fontSize: '0.8rem' }}>{property.description}</p>
                 )}
               </div>
-              <span style={property.is_active ? badgeActive : badgeInactive}>
+              <StatusBadge tone={property.is_active ? 'success' : 'danger'}>
                 {property.is_active ? 'Active' : 'Inactive'}
-              </span>
+              </StatusBadge>
             </div>
-            <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <Link to={`/properties/${property.id}`} style={smallBtnStyle}>View</Link>
-              <Link to={`/properties/${property.id}/edit`} style={smallBtnStyle}>Edit</Link>
-              <Link to={`/properties/${property.id}/units`} style={smallBtnStyle}>Units</Link>
+
+            <div style={{ marginTop: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <ButtonLink to={`/properties/${property.id}`} size="sm">View</ButtonLink>
+              <ButtonLink to={`/properties/${property.id}/edit`} size="sm">Edit</ButtonLink>
+              <ButtonLink to={`/properties/${property.id}/units`} size="sm">Units</ButtonLink>
               {property.is_active ? (
-                <button type="button" style={smallBtnDanger} onClick={() => deactivate.mutate(property.id)}>Deactivate</button>
+                <Button size="sm" variant="danger" onClick={() => deactivate.mutate(property.id)}>Deactivate</Button>
               ) : (
-                <button type="button" style={smallBtnStyle} onClick={() => activate.mutate(property.id)}>Activate</button>
+                <Button size="sm" onClick={() => activate.mutate(property.id)}>Activate</Button>
               )}
-              <button type="button" style={smallBtnDanger} onClick={() => { if (confirm('Delete this property?')) deleteProp.mutate(property.id) }}>Delete</button>
             </div>
-          </div>
+          </ContentCard>
         ))}
       </div>
-    </div>
+    </PageLayout>
   )
 }
-
-const cardStyle: React.CSSProperties = { border: '1px solid #e0e0e0', borderRadius: '0.5rem', padding: '1rem', backgroundColor: '#fff' }
-const badgeActive: React.CSSProperties = { backgroundColor: '#d4edda', color: '#155724', padding: '0.2rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem', fontWeight: 600 }
-const badgeInactive: React.CSSProperties = { backgroundColor: '#f8d7da', color: '#721c24', padding: '0.2rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem', fontWeight: 600 }
-const linkButtonStyle: React.CSSProperties = { padding: '0.5rem 1rem', backgroundColor: '#1a1a2e', color: '#fff', borderRadius: '0.375rem', textDecoration: 'none', fontSize: '0.875rem' }
-const smallBtnStyle: React.CSSProperties = { padding: '0.25rem 0.5rem', border: '1px solid #ccc', borderRadius: '0.25rem', fontSize: '0.75rem', cursor: 'pointer', textDecoration: 'none', color: '#333', backgroundColor: '#fff' }
-const smallBtnDanger: React.CSSProperties = { ...smallBtnStyle, color: '#dc3545', borderColor: '#dc3545' }
