@@ -17,7 +17,7 @@ class GuestService
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('full_name', 'ilike', "%{$search}%")
-                  ->orWhere('phone', 'ilike', "%{$search}%");
+                    ->orWhere('phone', 'ilike', "%{$search}%");
             });
         }
 

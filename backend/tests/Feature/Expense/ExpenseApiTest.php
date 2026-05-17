@@ -17,7 +17,9 @@ class ExpenseApiTest extends TestCase
     use RefreshDatabase;
 
     private Owner $owner;
+
     private Property $property;
+
     private Unit $unit;
 
     protected function setUp(): void

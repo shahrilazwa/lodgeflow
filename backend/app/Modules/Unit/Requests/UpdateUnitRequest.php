@@ -3,6 +3,7 @@
 namespace App\Modules\Unit\Requests;
 
 use App\Modules\Unit\Models\Unit;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -14,7 +15,7 @@ class UpdateUnitRequest extends FormRequest
     }
 
     /**
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -27,7 +28,7 @@ class UpdateUnitRequest extends FormRequest
                 'string',
                 'max:100',
                 Rule::unique('units', 'name')
-                    ->where('property_id', $this->input('property_id', $this->unit?->property_id ?? 0))
+                    ->where('property_id', $this->input('property_id', 0))
                     ->ignore($unitId),
             ],
             'type' => ['sometimes', 'required', 'string', Rule::in(Unit::TYPES)],

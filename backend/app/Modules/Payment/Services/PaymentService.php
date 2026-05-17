@@ -99,7 +99,7 @@ class PaymentService
 
         $netPaid = bccomp((string) $totalPayments, (string) $totalRefunds, 2) >= 0
             ? bcsub((string) $totalPayments, (string) $totalRefunds, 2)
-            : '-' . bcsub((string) $totalRefunds, (string) $totalPayments, 2);
+            : '-'.bcsub((string) $totalRefunds, (string) $totalPayments, 2);
 
         $netPaidFloat = (float) $netPaid;
         $totalAmount = (float) $booking->total_amount;

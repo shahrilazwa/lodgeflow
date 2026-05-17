@@ -4,6 +4,8 @@ namespace App\Modules\ServiceProvider\Services;
 
 use App\Modules\ServiceProvider\Models\ServiceProvider;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class ServiceProviderService
 {
@@ -78,8 +80,8 @@ class ServiceProviderService
     {
         // Check for linked expenses (will be implemented when Expense module exists)
         // For now, check if the expenses table exists and has linked records
-        if (\Illuminate\Support\Facades\Schema::hasTable('expenses')) {
-            $hasExpenses = \Illuminate\Support\Facades\DB::table('expenses')
+        if (Schema::hasTable('expenses')) {
+            $hasExpenses = DB::table('expenses')
                 ->where('service_provider_id', $provider->id)
                 ->exists();
 

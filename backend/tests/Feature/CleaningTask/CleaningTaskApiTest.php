@@ -18,8 +18,11 @@ class CleaningTaskApiTest extends TestCase
     use RefreshDatabase;
 
     private Owner $owner;
+
     private Property $property;
+
     private Unit $unit;
+
     private Guest $guest;
 
     protected function setUp(): void

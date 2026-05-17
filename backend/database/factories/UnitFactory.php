@@ -24,7 +24,7 @@ class UnitFactory extends Factory
         return [
             'owner_id' => Owner::factory(),
             'property_id' => Property::factory(),
-            'name' => 'Room ' . fake()->unique()->numberBetween(1, 999),
+            'name' => 'Room '.fake()->unique()->numberBetween(1, 999),
             'type' => fake()->randomElement(Unit::TYPES),
             'description' => fake()->optional()->sentence(),
             'is_active' => true,

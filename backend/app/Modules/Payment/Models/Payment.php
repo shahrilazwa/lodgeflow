@@ -15,12 +15,17 @@ class Payment extends Model
     use HasFactory;
 
     public const TYPE_PAYMENT = 'payment';
+
     public const TYPE_REFUND = 'refund';
+
     public const TYPES = [self::TYPE_PAYMENT, self::TYPE_REFUND];
 
     public const METHOD_CASH = 'cash';
+
     public const METHOD_BANK_TRANSFER = 'bank_transfer';
+
     public const METHOD_OTHER = 'other';
+
     public const METHODS = [self::METHOD_CASH, self::METHOD_BANK_TRANSFER, self::METHOD_OTHER];
 
     protected $fillable = [
