@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faBed,
@@ -39,6 +39,8 @@ const navItems: Array<{ to: string; label: string; icon: IconDefinition }> = [
 export default function AppShell({ children }: AppShellProps) {
   const { logout, owner } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const location = useLocation()
+  const currentSection = getCurrentSection(location.pathname)
 
   function handleLogout() {
     logout()
@@ -86,9 +88,9 @@ export default function AppShell({ children }: AppShellProps) {
             <FontAwesomeIcon icon={faTableColumns} aria-hidden="true" />
           </button>
           <div className="app-topbar-spacer" />
-          <div className="app-topbar-context" aria-label="Current module">
-            <FontAwesomeIcon icon={faChartSimple} aria-hidden="true" />
-            <span>Dashboard</span>
+          <div className="app-topbar-context" aria-label="Current section">
+            <FontAwesomeIcon icon={currentSection.icon} aria-hidden="true" />
+            <span>{currentSection.label}</span>
           </div>
         </header>
 
@@ -98,6 +100,19 @@ export default function AppShell({ children }: AppShellProps) {
       </div>
     </div>
   )
+}
+
+function getCurrentSection(pathname: string): { label: string; icon: IconDefinition } {
+  if (pathname.startsWith('/properties/') && pathname.includes('/units')) {
+    return { label: 'Units', icon: faBed }
+  }
+
+  if (pathname.startsWith('/units')) {
+    return { label: 'Units', icon: faBed }
+  }
+
+  const directMatch = navItems.find((item) => pathname === item.to || pathname.startsWith(`${item.to}/`))
+  return directMatch ?? { label: 'Dashboard', icon: faChartSimple }
 }
 
 const appShellStyles = `
