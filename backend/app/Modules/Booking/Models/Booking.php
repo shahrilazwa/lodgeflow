@@ -18,8 +18,11 @@ class Booking extends Model
     use HasFactory;
 
     public const STATUS_CONFIRMED = 'confirmed';
+
     public const STATUS_CHECKED_IN = 'checked_in';
+
     public const STATUS_CHECKED_OUT = 'checked_out';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     public const STATUSES = [

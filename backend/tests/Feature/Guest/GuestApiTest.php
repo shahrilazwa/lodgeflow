@@ -182,7 +182,7 @@ class GuestApiTest extends TestCase
             ->postJson('/api/v1/guests', [
                 'full_name' => str_repeat('a', 101),
                 'phone' => '0123456789',
-                'email' => str_repeat('a', 250) . '@b.co',
+                'email' => str_repeat('a', 250).'@b.co',
                 'identification_number' => str_repeat('c', 51),
             ]);
 

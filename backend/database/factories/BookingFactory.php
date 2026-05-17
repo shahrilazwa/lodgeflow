@@ -18,7 +18,7 @@ class BookingFactory extends Factory
     public function definition(): array
     {
         $checkIn = fake()->dateTimeBetween('+1 day', '+30 days');
-        $checkOut = (clone $checkIn)->modify('+' . fake()->numberBetween(1, 7) . ' days');
+        $checkOut = (clone $checkIn)->modify('+'.fake()->numberBetween(1, 7).' days');
 
         return [
             'owner_id' => Owner::factory(),

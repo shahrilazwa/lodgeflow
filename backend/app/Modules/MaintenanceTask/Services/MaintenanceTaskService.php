@@ -153,14 +153,30 @@ class MaintenanceTaskService
         }
 
         $updateData = [];
-        if (isset($data['title'])) $updateData['title'] = $data['title'];
-        if (array_key_exists('description', $data)) $updateData['description'] = $data['description'];
-        if (isset($data['priority'])) $updateData['priority'] = $data['priority'];
-        if (isset($data['status'])) $updateData['status'] = $data['status'];
-        if (array_key_exists('scheduled_date', $data)) $updateData['scheduled_date'] = $data['scheduled_date'];
-        if (array_key_exists('property_id', $data)) $updateData['property_id'] = $data['property_id'];
-        if (array_key_exists('unit_id', $data)) $updateData['unit_id'] = $data['unit_id'];
-        if (array_key_exists('service_provider_id', $data)) $updateData['service_provider_id'] = $data['service_provider_id'];
+        if (isset($data['title'])) {
+            $updateData['title'] = $data['title'];
+        }
+        if (array_key_exists('description', $data)) {
+            $updateData['description'] = $data['description'];
+        }
+        if (isset($data['priority'])) {
+            $updateData['priority'] = $data['priority'];
+        }
+        if (isset($data['status'])) {
+            $updateData['status'] = $data['status'];
+        }
+        if (array_key_exists('scheduled_date', $data)) {
+            $updateData['scheduled_date'] = $data['scheduled_date'];
+        }
+        if (array_key_exists('property_id', $data)) {
+            $updateData['property_id'] = $data['property_id'];
+        }
+        if (array_key_exists('unit_id', $data)) {
+            $updateData['unit_id'] = $data['unit_id'];
+        }
+        if (array_key_exists('service_provider_id', $data)) {
+            $updateData['service_provider_id'] = $data['service_provider_id'];
+        }
 
         if (! empty($updateData)) {
             $task->update($updateData);

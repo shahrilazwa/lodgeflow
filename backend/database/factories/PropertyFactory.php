@@ -22,7 +22,7 @@ class PropertyFactory extends Factory
     {
         return [
             'owner_id' => Owner::factory(),
-            'name' => fake()->company() . ' Homestay',
+            'name' => fake()->company().' Homestay',
             'address' => fake()->address(),
             'description' => fake()->optional()->sentence(),
             'is_active' => true,

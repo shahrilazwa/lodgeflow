@@ -17,8 +17,11 @@ class MaintenanceTask extends Model
     use HasFactory;
 
     public const STATUS_OPEN = 'open';
+
     public const STATUS_IN_PROGRESS = 'in_progress';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     public const STATUSES = [
@@ -29,7 +32,9 @@ class MaintenanceTask extends Model
     ];
 
     public const PRIORITY_LOW = 'low';
+
     public const PRIORITY_MEDIUM = 'medium';
+
     public const PRIORITY_HIGH = 'high';
 
     public const PRIORITIES = [

@@ -116,16 +116,36 @@ class ExpenseService
         }
 
         $updateData = [];
-        if (isset($data['property_id'])) $updateData['property_id'] = $data['property_id'];
-        if (isset($data['amount'])) $updateData['amount'] = $data['amount'];
-        if (isset($data['date'])) $updateData['date'] = $data['date'];
-        if (isset($data['category'])) $updateData['category'] = $data['category'];
-        if (array_key_exists('description', $data)) $updateData['description'] = $data['description'];
-        if (array_key_exists('unit_id', $data)) $updateData['unit_id'] = $data['unit_id'];
-        if (array_key_exists('booking_id', $data)) $updateData['booking_id'] = $data['booking_id'];
-        if (array_key_exists('service_provider_id', $data)) $updateData['service_provider_id'] = $data['service_provider_id'];
-        if (array_key_exists('cleaning_task_id', $data)) $updateData['cleaning_task_id'] = $data['cleaning_task_id'];
-        if (array_key_exists('maintenance_task_id', $data)) $updateData['maintenance_task_id'] = $data['maintenance_task_id'];
+        if (isset($data['property_id'])) {
+            $updateData['property_id'] = $data['property_id'];
+        }
+        if (isset($data['amount'])) {
+            $updateData['amount'] = $data['amount'];
+        }
+        if (isset($data['date'])) {
+            $updateData['date'] = $data['date'];
+        }
+        if (isset($data['category'])) {
+            $updateData['category'] = $data['category'];
+        }
+        if (array_key_exists('description', $data)) {
+            $updateData['description'] = $data['description'];
+        }
+        if (array_key_exists('unit_id', $data)) {
+            $updateData['unit_id'] = $data['unit_id'];
+        }
+        if (array_key_exists('booking_id', $data)) {
+            $updateData['booking_id'] = $data['booking_id'];
+        }
+        if (array_key_exists('service_provider_id', $data)) {
+            $updateData['service_provider_id'] = $data['service_provider_id'];
+        }
+        if (array_key_exists('cleaning_task_id', $data)) {
+            $updateData['cleaning_task_id'] = $data['cleaning_task_id'];
+        }
+        if (array_key_exists('maintenance_task_id', $data)) {
+            $updateData['maintenance_task_id'] = $data['maintenance_task_id'];
+        }
 
         if (! empty($updateData)) {
             $expense->update($updateData);

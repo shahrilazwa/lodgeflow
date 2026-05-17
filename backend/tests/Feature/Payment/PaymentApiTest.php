@@ -6,6 +6,7 @@ use App\Models\Owner;
 use App\Modules\Booking\Models\Booking;
 use App\Modules\Guest\Models\Guest;
 use App\Modules\Payment\Models\Payment;
+use App\Modules\Payment\Services\PaymentService;
 use App\Modules\Property\Models\Property;
 use App\Modules\Unit\Models\Unit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -16,6 +17,7 @@ class PaymentApiTest extends TestCase
     use RefreshDatabase;
 
     private Owner $owner;
+
     private Booking $booking;
 
     protected function setUp(): void
@@ -341,7 +343,7 @@ class PaymentApiTest extends TestCase
         ]);
 
         // Manually trigger recalculation so booking has partial status
-        app(\App\Modules\Payment\Services\PaymentService::class)
+        app(PaymentService::class)
             ->recalculateBookingPaymentStatus($this->booking->id);
 
         $response = $this->actingAs($this->owner, 'sanctum')

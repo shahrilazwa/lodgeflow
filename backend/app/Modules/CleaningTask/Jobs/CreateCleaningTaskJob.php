@@ -44,10 +44,18 @@ class CreateCleaningTaskJob implements ShouldQueue
         // Validate booking exists and is in checked_out status
         $booking = Booking::find($this->bookingId);
 
-        if (! $booking || $booking->status !== Booking::STATUS_CHECKED_OUT) {
+        if (! $booking) {
+            Log::warning('CreateCleaningTaskJob: booking not found, skipping.', [
+                'booking_id' => $this->bookingId,
+            ]);
+
+            return;
+        }
+
+        if ($booking->status !== Booking::STATUS_CHECKED_OUT) {
             Log::warning('CreateCleaningTaskJob: booking not in checked_out status, skipping.', [
                 'booking_id' => $this->bookingId,
-                'status' => $booking?->status ?? 'not found',
+                'status' => $booking->status,
             ]);
 
             return;

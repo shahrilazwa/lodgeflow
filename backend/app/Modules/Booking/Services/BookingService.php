@@ -4,6 +4,7 @@ namespace App\Modules\Booking\Services;
 
 use App\Modules\Booking\Models\Booking;
 use App\Modules\CleaningTask\Jobs\CreateCleaningTaskJob;
+use App\Modules\Guest\Models\Guest;
 use App\Modules\Property\Models\Property;
 use App\Modules\Unit\Models\Unit;
 use Illuminate\Database\Eloquent\Collection;
@@ -73,7 +74,7 @@ class BookingService
         }
 
         // Verify guest belongs to owner
-        $guestExists = \App\Modules\Guest\Models\Guest::where('id', $data['guest_id'])
+        $guestExists = Guest::where('id', $data['guest_id'])
             ->where('owner_id', $ownerId)
             ->exists();
 

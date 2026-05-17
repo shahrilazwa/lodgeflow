@@ -13,6 +13,7 @@ class UnitApiTest extends TestCase
     use RefreshDatabase;
 
     private Owner $owner;
+
     private Property $property;
 
     protected function setUp(): void
