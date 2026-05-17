@@ -1,4 +1,5 @@
-import { useParams, Link } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
+import { ButtonLink, ContentCard, PageHeader, PageLayout, StatusBadge } from '@/components/ui/Page'
 import { useUnit } from './api'
 import { UNIT_TYPE_LABELS } from './types'
 
@@ -6,37 +7,60 @@ export default function UnitDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { data: unit, isLoading, error } = useUnit(Number(id))
 
-  if (isLoading) return <div>Loading unit...</div>
-  if (error) return <div style={{ color: 'red' }}>Unit not found.</div>
-  if (!unit) return <div>Unit not found.</div>
+  if (isLoading) {
+    return (
+      <PageLayout>
+        <PageHeader title="Unit" description="Loading unit details..." />
+        <ContentCard>Loading unit...</ContentCard>
+      </PageLayout>
+    )
+  }
+
+  if (error || !unit) {
+    return (
+      <PageLayout>
+        <PageHeader title="Unit unavailable" />
+        <ContentCard>
+          <p style={{ margin: 0, color: '#dc2626' }}>Unable to load this unit record.</p>
+        </ContentCard>
+      </PageLayout>
+    )
+  }
+
+  const backPath = `/properties/${unit.property_id}/units`
 
   return (
-    <div>
-      <div style={{ marginBottom: '1rem' }}>
-        <Link to={`/properties/${unit.property_id}/units`} style={{ color: '#555', fontSize: '0.875rem' }}>← Back to Units</Link>
-      </div>
+    <PageLayout>
+      <PageHeader
+        eyebrow="Unit"
+        title={unit.name}
+        description="Review unit information used for booking and operations."
+        backTo={backPath}
+        backLabel="Back to Units"
+        meta={<StatusBadge tone={unit.is_active ? 'success' : 'danger'}>{unit.is_active ? 'Active' : 'Inactive'}</StatusBadge>}
+        action={<ButtonLink to={`/units/${unit.id}/edit`} variant="primary">Edit Unit</ButtonLink>}
+      />
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h2 style={{ margin: 0 }}>{unit.name}</h2>
-        <span style={unit.is_active ? badgeActive : badgeInactive}>
-          {unit.is_active ? 'Active' : 'Inactive'}
-        </span>
-      </div>
+      <ContentCard>
+        <div style={{ display: 'grid', gap: '16px' }}>
+          <DetailItem label="Type" value={UNIT_TYPE_LABELS[unit.type]} />
+          {unit.description && <DetailItem label="Description" value={unit.description} />}
+          <DetailItem label="Created" value={new Date(unit.created_at).toLocaleDateString()} />
+        </div>
+      </ContentCard>
 
-      <div style={cardStyle}>
-        <p><strong>Type:</strong> {UNIT_TYPE_LABELS[unit.type]}</p>
-        {unit.description && <p><strong>Description:</strong> {unit.description}</p>}
-        <p style={{ color: '#888', fontSize: '0.8rem' }}>Created: {new Date(unit.created_at).toLocaleDateString()}</p>
+      <div style={{ marginTop: '14px' }}>
+        <ButtonLink to={backPath} variant="ghost">Back</ButtonLink>
       </div>
-
-      <div style={{ marginTop: '1rem' }}>
-        <Link to={`/units/${unit.id}/edit`} style={btnStyle}>Edit</Link>
-      </div>
-    </div>
+    </PageLayout>
   )
 }
 
-const cardStyle: React.CSSProperties = { border: '1px solid #e0e0e0', borderRadius: '0.5rem', padding: '1rem', backgroundColor: '#fff' }
-const badgeActive: React.CSSProperties = { backgroundColor: '#d4edda', color: '#155724', padding: '0.2rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem', fontWeight: 600 }
-const badgeInactive: React.CSSProperties = { backgroundColor: '#f8d7da', color: '#721c24', padding: '0.2rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem', fontWeight: 600 }
-const btnStyle: React.CSSProperties = { padding: '0.5rem 1rem', border: '1px solid #ccc', borderRadius: '0.375rem', textDecoration: 'none', color: '#333', fontSize: '0.875rem' }
+function DetailItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p style={{ margin: '0 0 4px', color: '#71717a', fontSize: '0.78rem', fontWeight: 700 }}>{label}</p>
+      <p style={{ margin: 0, color: '#18181b', fontSize: '0.9rem', lineHeight: 1.6 }}>{value}</p>
+    </div>
+  )
+}
