@@ -2,7 +2,7 @@
 
 LodgeFlow is a property operations app for managing bookings, guests, payments, expenses, cleaning tasks, maintenance work, and business performance for small lodging or short-stay rental businesses.
 
-This MVP targets a single owner/admin user managing their own properties.
+This is the **Owner MVP** — a single-owner admin interface covering the complete operational workflow.
 
 ---
 
@@ -10,7 +10,7 @@ This MVP targets a single owner/admin user managing their own properties.
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | React + Vite + TypeScript |
+| Frontend | React 19 + Vite 6 + TypeScript |
 | Design System | MYDS (Malaysia Government Design System) |
 | Backend | Laravel (latest stable) — modular monolith |
 | Database | PostgreSQL 16 |
@@ -23,16 +23,6 @@ This MVP targets a single owner/admin user managing their own properties.
 
 ---
 
-## Prerequisites
-
-- Docker Desktop (or Docker Engine + Docker Compose)
-- Git
-- A GitHub account (for remote repository and project management)
-
-No need to install PHP, Composer, Node, or npm directly on your machine — everything runs inside containers.
-
----
-
 ## Quick Start
 
 ```bash
@@ -40,131 +30,131 @@ No need to install PHP, Composer, Node, or npm directly on your machine — ever
 git clone <your-github-repo-url>
 cd lodgeflow
 
-# 2. Copy environment file
-cp .env.example .env
-
-# 3. Start all services
+# 2. Start all services
 docker compose up -d
 
-# 4. Run backend migrations (first time only)
-docker compose exec api php artisan migrate
+# 3. Set up backend environment
+docker compose exec api bash -c "cp .env.example .env && php artisan key:generate"
 
-# 5. Access the application
+# 4. Run database migrations
+docker compose run --rm api php artisan migrate:fresh
+
+# 5. Restart queue worker
+docker compose restart queue-worker
+
+# 6. Access the application
 # Frontend:  http://localhost:5173
-# API:       http://localhost:8000
+# API:       http://localhost:8000/api/v1/health
 # Mailpit:   http://localhost:8025
 ```
-
-To stop all services:
-
-```bash
-docker compose down
-```
-
----
-
-## Folder Structure
-
-```
-lodgeflow/
-├── .github/                       # GitHub Actions CI workflows
-├── .kiro/specs/                   # Kiro spec files (requirements, design, tasks)
-├── docs/                          # Project documentation
-│   ├── adr/                       # Architecture Decision Records
-│   └── github-workflow.md         # GitHub project management workflow
-├── frontend/                      # React + Vite + TypeScript SPA
-│   ├── src/
-│   │   ├── features/             # Feature-based modules
-│   │   ├── components/           # Shared/reusable components
-│   │   ├── hooks/                # Custom React hooks
-│   │   ├── lib/                  # API client, utilities
-│   │   ├── types/                # TypeScript type definitions
-│   │   ├── routes/               # Route definitions
-│   │   └── styles/               # Global styles
-│   └── ...
-├── backend/                       # Laravel API (modular monolith)
-│   ├── app/
-│   │   ├── Modules/              # Domain modules
-│   │   │   ├── Property/
-│   │   │   ├── Unit/
-│   │   │   ├── Guest/
-│   │   │   ├── Booking/
-│   │   │   ├── Payment/
-│   │   │   ├── Expense/
-│   │   │   ├── ServiceProvider/
-│   │   │   ├── CleaningTask/
-│   │   │   ├── MaintenanceTask/
-│   │   │   └── Dashboard/
-│   │   ├── Http/Controllers/Auth/ # Authentication controllers
-│   │   ├── Models/
-│   │   └── Traits/
-│   └── ...
-├── docker/                        # Dockerfiles for each service
-│   ├── frontend/
-│   └── backend/
-├── docker-compose.yml
-├── .env.example
-└── .gitignore
-```
-
----
-
-## Development Workflow
-
-1. **Create a feature branch** from `main`:
-   ```bash
-   git checkout -b feature/<issue-number>-<short-name>
-   ```
-
-2. **Start services** (if not already running):
-   ```bash
-   docker compose up -d
-   ```
-
-3. **Backend development** — code changes in `backend/` are volume-mounted and reflected immediately.
-
-4. **Frontend development** — Vite hot-reloads on file changes in `frontend/`.
-
-5. **Run backend tests**:
-   ```bash
-   docker compose exec api php artisan test
-   ```
-
-6. **Run frontend build check**:
-   ```bash
-   docker compose exec frontend npm run build
-   ```
-
-7. **Commit and push**, then open a PR to `main`.
-
-8. **CI runs automatically** on PR — must pass before merge.
 
 ---
 
 ## Documentation
 
-- [GitHub Workflow](docs/github-workflow.md) — milestones, labels, project board, branching, and release strategy
-- [Architecture Decision Records](docs/adr/) — key technical decisions and rationale
+| Document | Description |
+|----------|-------------|
+| [User Manual](docs/user-manual.md) | Step-by-step guide for homestay owners using the app |
+| [Technical Manual](docs/technical-manual.md) | Developer guide: architecture, data flow, implementation details |
+| [API Reference](docs/api.md) | All API endpoints with request/response examples |
+| [GitHub Workflow](docs/github-workflow.md) | Milestones, labels, branching, and release strategy |
+| [Architecture Decision Records](docs/adr/) | Key technical decisions and rationale |
+| [Smoke Test Results](docs/smoke-test-results.md) | End-to-end workflow verification |
+| [Changelog](CHANGELOG.md) | Version history with all changes |
 
 ---
 
-## MVP Scope
+## MVP Modules
 
-The MVP covers:
-- Property and unit management
-- Guest records
-- Manual booking management with status transitions
-- Payment and refund tracking
-- Expense tracking with multi-entity linking
-- Service provider records
-- Automated cleaning task creation on checkout (via queue)
-- Maintenance task tracking
-- Business performance dashboard
+| Module | Description |
+|--------|-------------|
+| Properties | Manage lodging establishments |
+| Units | Manage rooms/spaces within properties |
+| Guests | Record guest contact information |
+| Bookings | Manage reservations with status transitions |
+| Payments | Record payments and refunds, track payment status |
+| Expenses | Track business costs with multi-entity linking |
+| Service Providers | Manage external vendors |
+| Cleaning Tasks | Auto-created on checkout, track cleaning progress |
+| Maintenance Tasks | Track repairs and upkeep |
+| Dashboard | Business performance summary |
 
-**Out of scope for MVP:** guest portal, cleaner portal, online payment gateway, Airbnb sync, mobile app, RabbitMQ, Kubernetes, MongoDB.
+---
+
+## Development Commands
+
+```bash
+# Start all services
+docker compose up -d
+
+# Stop all services
+docker compose down
+
+# Run backend tests
+docker compose run --rm api php artisan test
+
+# Run quality gates
+docker compose run --rm --no-deps api vendor/bin/pint --test
+docker compose run --rm --no-deps api vendor/bin/phpstan analyse --memory-limit=512M
+docker compose run --rm --no-deps frontend sh -c "npm run lint"
+docker compose run --rm --no-deps frontend sh -c "npm run type-check"
+docker compose run --rm --no-deps frontend sh -c "npm run build"
+
+# Run smoke test
+docker compose exec api bash scripts/smoke-test.sh
+
+# Fresh database
+docker compose run --rm api php artisan migrate:fresh
+```
+
+---
+
+## Project Structure
+
+```
+lodgeflow/
+├── backend/                    # Laravel API (modular monolith)
+│   ├── app/Modules/           # Domain modules (10 modules)
+│   ├── database/migrations/   # Database schema
+│   ├── routes/api.php         # All API routes
+│   ├── tests/                 # Unit, Feature, Property-based tests
+│   └── scripts/               # Smoke test script
+├── frontend/                   # React + Vite + TypeScript SPA
+│   └── src/features/          # Feature-based UI modules
+├── docker/                     # Dockerfiles
+├── docs/                       # Documentation
+├── .github/workflows/          # CI pipeline
+├── docker-compose.yml          # Service definitions
+└── CHANGELOG.md               # Version history
+```
+
+---
+
+## Testing
+
+| Type | Count | Purpose |
+|------|-------|---------|
+| Unit Tests | 2 | Model relationships |
+| Feature Tests | 215 | API endpoint testing |
+| Property-Based Tests | 350 | Correctness with random inputs |
+| Smoke Test | 27 checks | End-to-end workflow |
+| **Total** | **567 automated + 27 smoke** | |
+
+---
+
+## Out of Scope (MVP)
+
+- Guest self-service portal
+- Cleaner/manager login
+- Online payment gateway (Stripe, FPX)
+- Airbnb/OTA sync
+- Mobile app
+- Multi-user roles
+- MongoDB
+- RabbitMQ / Kubernetes
 
 ---
 
 ## License
 
-No open-source license has been selected. All rights reserved.
+Private project. All rights reserved.
