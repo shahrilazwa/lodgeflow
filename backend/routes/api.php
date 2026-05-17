@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Modules\Booking\Controllers\BookingController;
 use App\Modules\CleaningTask\Controllers\CleaningTaskController;
+use App\Modules\Dashboard\Controllers\DashboardController;
 use App\Modules\Expense\Controllers\ExpenseController;
 use App\Modules\Guest\Controllers\GuestController;
 use App\Modules\MaintenanceTask\Controllers\MaintenanceTaskController;
@@ -120,4 +121,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/maintenance-tasks/{id}', [MaintenanceTaskController::class, 'show']);
     Route::put('/maintenance-tasks/{id}', [MaintenanceTaskController::class, 'update']);
     Route::patch('/maintenance-tasks/{id}', [MaintenanceTaskController::class, 'update']);
+
+    // Dashboard
+    Route::get('/dashboard/income', [DashboardController::class, 'income']);
+    Route::get('/dashboard/expenses', [DashboardController::class, 'expenses']);
+    Route::get('/dashboard/net-profit', [DashboardController::class, 'netProfit']);
+    Route::get('/dashboard/outstanding', [DashboardController::class, 'outstanding']);
+    Route::get('/dashboard/booking-counts', [DashboardController::class, 'bookingCounts']);
+    Route::get('/dashboard/pending-cleaning', [DashboardController::class, 'pendingCleaning']);
+    Route::get('/dashboard/pending-maintenance', [DashboardController::class, 'pendingMaintenance']);
 });
