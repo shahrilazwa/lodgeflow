@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Modules\Booking\Controllers\BookingController;
 use App\Modules\Guest\Controllers\GuestController;
+use App\Modules\Payment\Controllers\PaymentController;
 use App\Modules\Property\Controllers\PropertyController;
 use App\Modules\Unit\Controllers\UnitController;
 use Illuminate\Support\Facades\Route;
@@ -80,4 +81,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/bookings/{id}/check-in', [BookingController::class, 'checkIn']);
     Route::patch('/bookings/{id}/check-out', [BookingController::class, 'checkOut']);
     Route::patch('/bookings/{id}/cancel', [BookingController::class, 'cancel']);
+
+    // Payments (nested under bookings)
+    Route::get('/bookings/{bookingId}/payments', [PaymentController::class, 'index']);
+    Route::post('/bookings/{bookingId}/payments', [PaymentController::class, 'store']);
+    Route::delete('/bookings/{bookingId}/payments/{id}', [PaymentController::class, 'destroy']);
 });
