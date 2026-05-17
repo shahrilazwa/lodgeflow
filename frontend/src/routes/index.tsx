@@ -22,7 +22,9 @@ import BookingDetailPage from '@/features/bookings/BookingDetailPage'
 import BookingFormPage from '@/features/bookings/BookingFormPage'
 import PaymentsPage from '@/features/payments/PaymentsPage'
 import ExpensesPage from '@/features/expenses/ExpensesPage'
+import ExpenseFormPage from '@/features/expenses/ExpenseFormPage'
 import ServiceProvidersPage from '@/features/service-providers/ServiceProvidersPage'
+import ServiceProviderFormPage from '@/features/service-providers/ServiceProviderFormPage'
 import CleaningTasksPage from '@/features/cleaning-tasks/CleaningTasksPage'
 import MaintenanceTasksPage from '@/features/maintenance-tasks/MaintenanceTasksPage'
 
@@ -67,10 +69,20 @@ export const router = createBrowserRouter([
       { path: '/bookings/:id', element: <BookingDetailPage /> },
       { path: '/bookings/:id/edit', element: <BookingFormPage /> },
 
-      // Other modules (placeholders)
+      // Payments (managed from booking detail page)
       { path: '/payments', element: <PaymentsPage /> },
+
+      // Expenses
       { path: '/expenses', element: <ExpensesPage /> },
+      { path: '/expenses/create', element: <ExpenseFormPage /> },
+      { path: '/expenses/:id/edit', element: <ExpenseFormPage /> },
+
+      // Service Providers
       { path: '/service-providers', element: <ServiceProvidersPage /> },
+      { path: '/service-providers/create', element: <ServiceProviderFormPage /> },
+      { path: '/service-providers/:id/edit', element: <ServiceProviderFormPage /> },
+
+      // Other modules (placeholders)
       { path: '/cleaning-tasks', element: <CleaningTasksPage /> },
       { path: '/maintenance-tasks', element: <MaintenanceTasksPage /> },
     ],

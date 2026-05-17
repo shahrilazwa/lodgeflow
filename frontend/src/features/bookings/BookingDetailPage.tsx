@@ -1,6 +1,7 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useBooking, useCheckInBooking, useCheckOutBooking, useCancelBooking } from './api'
 import { BOOKING_STATUS_LABELS, PAYMENT_STATUS_LABELS } from './types'
+import PaymentSection from '@/features/payments/PaymentSection'
 
 export default function BookingDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -118,6 +119,9 @@ export default function BookingDetailPage() {
           Status transition failed. The booking may not be in the correct state.
         </div>
       )}
+
+      {/* Payment records */}
+      <PaymentSection bookingId={booking.id} />
     </div>
   )
 }
