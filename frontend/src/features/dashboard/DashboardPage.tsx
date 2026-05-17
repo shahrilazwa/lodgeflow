@@ -3,7 +3,6 @@ import {
   faBroom,
   faCalendarCheck,
   faChartLine,
-  faCreditCard,
   faFileInvoiceDollar,
   faMoneyBillTrendUp,
   faScrewdriverWrench,
