@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
 const features = [
@@ -24,36 +25,53 @@ const faqs = [
 ] as const
 
 export default function LandingPage() {
+  const [mastheadOpen, setMastheadOpen] = useState(false)
+
   return (
     <div className="lf-page">
       <style>{landingStyles}</style>
 
-      <details className="lf-masthead">
-        <summary className="lf-container lf-masthead-summary">
-          <span className="lf-flag" aria-hidden="true">LF</span>
+      <section className="lf-masthead" aria-label="LodgeFlow information masthead">
+        <div className="lf-container lf-masthead-summary">
+          <span className="lf-masthead-logo" aria-hidden="true">L</span>
           <span className="lf-masthead-title">LodgeFlow</span>
-          <span className="lf-masthead-link">Ketahui Lebih Lanjut</span>
-          <span className="lf-masthead-chevron" aria-hidden="true">⌄</span>
-        </summary>
-        <div className="lf-container lf-masthead-panel">
-          <div className="lf-masthead-card">
-            <div className="lf-masthead-item">
-              <span className="lf-masthead-icon" aria-hidden="true">1</span>
-              <div>
-                <h2>Built for small accommodation operations</h2>
-                <p>LodgeFlow helps small hotels, lodges, homestays and guesthouses manage daily booking work from one place.</p>
+          <button
+            type="button"
+            className="lf-masthead-toggle"
+            aria-expanded={mastheadOpen}
+            aria-controls="lf-masthead-panel"
+            onClick={() => setMastheadOpen((isOpen) => !isOpen)}
+          >
+            <span>Ketahui Lebih Lanjut</span>
+            <ChevronIcon />
+          </button>
+        </div>
+
+        <div
+          id="lf-masthead-panel"
+          className={`lf-masthead-panel ${mastheadOpen ? 'is-open' : ''}`}
+          aria-hidden={!mastheadOpen}
+        >
+          <div className="lf-container">
+            <div className="lf-masthead-card">
+              <div className="lf-masthead-item">
+                <BuildingIcon />
+                <div>
+                  <h2>Built for small accommodation operations</h2>
+                  <p>LodgeFlow helps small hotels, lodges, homestays and guesthouses manage daily booking work from one place.</p>
+                </div>
               </div>
-            </div>
-            <div className="lf-masthead-item">
-              <span className="lf-masthead-icon" aria-hidden="true">2</span>
-              <div>
-                <h2>Clean, secure and staff-friendly workflow</h2>
-                <p>Use clear screens for room availability, guest records, booking status, payments, cleaning and maintenance follow-ups.</p>
+              <div className="lf-masthead-item">
+                <ShieldIcon />
+                <div>
+                  <h2>Clean, secure and staff-friendly workflow</h2>
+                  <p>Use clear screens for room availability, guest records, booking status, payments, cleaning and maintenance follow-ups.</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </details>
+      </section>
 
       <header className="lf-navbar-wrap">
         <div className="lf-container lf-navbar">
@@ -245,23 +263,49 @@ function RoomRow({ room, state }: { room: string; state: string }) {
   return <div className="lf-room-row"><span>{room}</span><strong>{state}</strong></div>
 }
 
+function ChevronIcon() {
+  return (
+    <svg className="lf-chevron-icon" viewBox="0 0 16 16" aria-hidden="true">
+      <path d="M4 10.5 8 6l4 4.5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
+    </svg>
+  )
+}
+
+function BuildingIcon() {
+  return (
+    <svg className="lf-masthead-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 20h16M6 20V8.5L12 5l6 3.5V20M9 20v-5h6v5M9 11h.01M12 11h.01M15 11h.01" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" />
+    </svg>
+  )
+}
+
+function ShieldIcon() {
+  return (
+    <svg className="lf-masthead-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 3.5 18 6v5.2c0 3.8-2.4 7.2-6 8.3-3.6-1.1-6-4.5-6-8.3V6l6-2.5Z" fill="none" stroke="currentColor" strokeLinejoin="round" strokeWidth="1.7" />
+      <path d="m9.5 12.2 1.7 1.7 3.6-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" />
+    </svg>
+  )
+}
+
 const landingStyles = `
   .lf-page { min-height: 100vh; background: #ffffff; color: #18181b; }
   .lf-page * { box-sizing: border-box; }
   .lf-container { width: min(1120px, calc(100% - 32px)); margin: 0 auto; }
 
   .lf-masthead { border-bottom: 1px solid #e4e4e7; background: #ffffff; }
-  .lf-masthead-summary { min-height: 44px; display: flex; align-items: center; gap: 10px; cursor: pointer; list-style: none; font-size: 0.88rem; }
-  .lf-masthead-summary::-webkit-details-marker { display: none; }
-  .lf-flag { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 18px; border-radius: 3px; background: linear-gradient(135deg, #2563eb 0%, #2563eb 50%, #ef4444 50%, #ef4444 100%); color: #ffffff; font-size: 0.62rem; font-weight: 900; }
-  .lf-masthead-title { color: #18181b; font-weight: 650; }
-  .lf-masthead-link { color: #2563eb; font-weight: 650; }
-  .lf-masthead-chevron { color: #2563eb; font-size: 1rem; transition: transform 160ms ease; }
-  .lf-masthead[open] .lf-masthead-chevron { transform: rotate(180deg); }
-  .lf-masthead-panel { padding-bottom: 28px; }
-  .lf-masthead-card { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 36px; padding: 28px 32px; border-radius: 14px; background: #f4f4f5; }
-  .lf-masthead-item { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: start; }
-  .lf-masthead-icon { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 10px; background: #ffffff; border: 1px solid #e4e4e7; color: #2563eb; font-size: 0.8rem; font-weight: 900; }
+  .lf-masthead-summary { min-height: 44px; display: flex; align-items: center; gap: 10px; font-size: 0.88rem; }
+  .lf-masthead-logo { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 8px; background: #eff6ff; color: #2563eb; font-weight: 900; line-height: 1; }
+  .lf-masthead-title { color: #18181b; font-weight: 700; line-height: 1; }
+  .lf-masthead-toggle { display: inline-flex; align-items: center; gap: 4px; padding: 0; border: 0; background: transparent; color: #2563eb; cursor: pointer; font: inherit; font-weight: 700; line-height: 1; }
+  .lf-masthead-toggle:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .lf-chevron-icon { width: 14px; height: 14px; flex: 0 0 14px; transform: rotate(180deg); transition: transform 220ms ease; }
+  .lf-masthead-toggle[aria-expanded='true'] .lf-chevron-icon { transform: rotate(0deg); }
+  .lf-masthead-panel { max-height: 0; overflow: hidden; opacity: 0; transform: translateY(-6px); transition: max-height 360ms ease, opacity 220ms ease, transform 300ms ease; }
+  .lf-masthead-panel.is-open { max-height: 260px; opacity: 1; transform: translateY(0); }
+  .lf-masthead-card { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 48px; margin: 4px 0 28px; padding: 28px 32px; border-radius: 14px; background: #f4f4f5; }
+  .lf-masthead-item { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: start; }
+  .lf-masthead-icon { width: 30px; height: 30px; color: #71717a; }
   .lf-masthead-item h2 { margin: 0 0 6px; font-size: 0.95rem; line-height: 1.35; }
   .lf-masthead-item p { margin: 0; color: #52525b; font-size: 0.85rem; line-height: 1.55; }
 
@@ -347,12 +391,14 @@ const landingStyles = `
     .lf-masthead-card, .lf-hero-grid, .lf-split-grid, .lf-faq-grid { grid-template-columns: 1fr; }
     .lf-feature-grid, .lf-step-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .lf-nav-links { display: none; }
+    .lf-masthead-panel.is-open { max-height: 360px; }
   }
 
   @media (max-width: 640px) {
     .lf-container { width: min(100% - 24px, 1120px); }
-    .lf-masthead-summary { align-items: flex-start; flex-wrap: wrap; padding: 12px 0; }
+    .lf-masthead-summary { align-items: center; flex-wrap: wrap; padding: 12px 0; }
     .lf-masthead-card, .lf-preview-card, .lf-soft-panel, .lf-cta-card { border-radius: 18px; padding: 20px; }
+    .lf-masthead-panel.is-open { max-height: 520px; }
     .lf-navbar { align-items: flex-start; flex-direction: column; padding: 14px 0; }
     .lf-nav-actions, .lf-hero-actions, .lf-cta-actions { width: 100%; flex-wrap: wrap; }
     .lf-nav-actions a, .lf-hero-actions a, .lf-cta-actions a { flex: 1; }
