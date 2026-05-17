@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { Button, ContentCard, Field, PageHeader, PageLayout, TextInput } from '@/components/ui/Page'
 import { useCreateGuest, useGuest, useUpdateGuest } from './api'
 import type { AxiosError } from 'axios'
 import type { ValidationErrorResponse } from '@/types/api'
@@ -20,7 +21,6 @@ export default function GuestFormPage() {
   const [errors, setErrors] = useState<Record<string, string[]>>({})
   const [initialized, setInitialized] = useState(false)
 
-  // Populate form when editing
   if (isEdit && existing && !initialized) {
     setFullName(existing.full_name)
     setPhone(existing.phone)
@@ -29,7 +29,14 @@ export default function GuestFormPage() {
     setInitialized(true)
   }
 
-  if (isEdit && isLoading) return <div>Loading...</div>
+  if (isEdit && isLoading) {
+    return (
+      <PageLayout width="narrow">
+        <PageHeader title="Guest" description="Loading guest form..." backTo="/guests" backLabel="Back to Guests" />
+        <ContentCard>Loading...</ContentCard>
+      </PageLayout>
+    )
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -60,48 +67,41 @@ export default function GuestFormPage() {
   const isPending = createMutation.isPending || updateMutation.isPending
 
   return (
-    <div style={{ maxWidth: '500px' }}>
-      <h2>{isEdit ? 'Edit Guest' : 'Create Guest'}</h2>
+    <PageLayout width="narrow">
+      <PageHeader
+        eyebrow="Guest"
+        title={isEdit ? 'Edit Guest' : 'Create Guest'}
+        description={isEdit ? 'Update guest contact and identification details.' : 'Create a guest profile to use when recording bookings.'}
+        backTo="/guests"
+        backLabel="Back to Guests"
+      />
 
-      <form onSubmit={handleSubmit}>
-        <div style={fieldStyle}>
-          <label htmlFor="full_name" style={labelStyle}>Full Name *</label>
-          <input id="full_name" type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} style={inputStyle} maxLength={100} required />
-          {errors.full_name && <p style={errorStyle}>{errors.full_name[0]}</p>}
-        </div>
+      <ContentCard>
+        <form onSubmit={handleSubmit}>
+          <Field label="Full Name" htmlFor="full_name" required error={errors.full_name?.[0]}>
+            <TextInput id="full_name" type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} maxLength={100} required />
+          </Field>
 
-        <div style={fieldStyle}>
-          <label htmlFor="phone" style={labelStyle}>Phone (7–15 digits) *</label>
-          <input id="phone" type="text" value={phone} onChange={(e) => setPhone(e.target.value)} style={inputStyle} maxLength={15} required pattern="\d{7,15}" />
-          {errors.phone && <p style={errorStyle}>{errors.phone[0]}</p>}
-        </div>
+          <Field label="Phone" htmlFor="phone" required error={errors.phone?.[0]}>
+            <TextInput id="phone" type="text" value={phone} onChange={(e) => setPhone(e.target.value)} maxLength={15} required pattern="\d{7,15}" />
+          </Field>
 
-        <div style={fieldStyle}>
-          <label htmlFor="email" style={labelStyle}>Email</label>
-          <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} style={inputStyle} maxLength={254} />
-          {errors.email && <p style={errorStyle}>{errors.email[0]}</p>}
-        </div>
+          <Field label="Email" htmlFor="email" error={errors.email?.[0]}>
+            <TextInput id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={254} />
+          </Field>
 
-        <div style={fieldStyle}>
-          <label htmlFor="identification_number" style={labelStyle}>Identification Number</label>
-          <input id="identification_number" type="text" value={identificationNumber} onChange={(e) => setIdentificationNumber(e.target.value)} style={inputStyle} maxLength={50} />
-          {errors.identification_number && <p style={errorStyle}>{errors.identification_number[0]}</p>}
-        </div>
+          <Field label="Identification Number" htmlFor="identification_number" error={errors.identification_number?.[0]}>
+            <TextInput id="identification_number" type="text" value={identificationNumber} onChange={(e) => setIdentificationNumber(e.target.value)} maxLength={50} />
+          </Field>
 
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button type="submit" disabled={isPending} style={submitBtnStyle}>
-            {isPending ? 'Saving...' : isEdit ? 'Update' : 'Create'}
-          </button>
-          <button type="button" onClick={() => navigate('/guests')} style={cancelBtnStyle}>Cancel</button>
-        </div>
-      </form>
-    </div>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <Button type="submit" disabled={isPending} variant="primary">
+              {isPending ? 'Saving...' : isEdit ? 'Update Guest' : 'Create Guest'}
+            </Button>
+            <Button type="button" onClick={() => navigate('/guests')}>Cancel</Button>
+          </div>
+        </form>
+      </ContentCard>
+    </PageLayout>
   )
 }
-
-const fieldStyle: React.CSSProperties = { marginBottom: '1rem' }
-const labelStyle: React.CSSProperties = { display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', fontWeight: 500 }
-const inputStyle: React.CSSProperties = { width: '100%', padding: '0.5rem', border: '1px solid #ccc', borderRadius: '0.375rem', fontSize: '0.875rem', boxSizing: 'border-box' }
-const errorStyle: React.CSSProperties = { color: '#dc3545', fontSize: '0.8rem', margin: '0.25rem 0 0' }
-const submitBtnStyle: React.CSSProperties = { padding: '0.5rem 1.5rem', backgroundColor: '#1a1a2e', color: '#fff', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem' }
-const cancelBtnStyle: React.CSSProperties = { padding: '0.5rem 1.5rem', backgroundColor: '#fff', color: '#333', border: '1px solid #ccc', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem' }
