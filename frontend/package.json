@@ -11,6 +11,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.7.2",
+    "@fortawesome/free-solid-svg-icons": "^6.7.2",
+    "@fortawesome/react-fontawesome": "^0.2.2",
     "@govtechmy/myds-react": "^1.0.0",
     "@govtechmy/myds-style": "^1.0.0",
     "@tanstack/react-query": "^5.0.0",
@@ -25,7 +28,7 @@
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.4.0",
     "autoprefixer": "^10.4.20",
-    "eslint": "^10.4.0",
+    "eslint": "^10.4.1",
     "eslint-plugin-react-hooks": "^7.1.1",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.10",
