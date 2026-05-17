@@ -1,42 +1,64 @@
-import { useParams, Link } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
+import { ButtonLink, ContentCard, PageHeader, PageLayout, StatusBadge } from '@/components/ui/Page'
 import { useProperty } from './api'
 
 export default function PropertyDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { data: property, isLoading, error } = useProperty(Number(id))
 
-  if (isLoading) return <div>Loading property...</div>
-  if (error) return <div style={{ color: 'red' }}>Property not found.</div>
-  if (!property) return <div>Property not found.</div>
+  if (isLoading) {
+    return (
+      <PageLayout>
+        <PageHeader title="Property" description="Loading property details..." backTo="/properties" backLabel="Back to Properties" />
+        <ContentCard>Loading property...</ContentCard>
+      </PageLayout>
+    )
+  }
+
+  if (error || !property) {
+    return (
+      <PageLayout>
+        <PageHeader title="Property unavailable" backTo="/properties" backLabel="Back to Properties" />
+        <ContentCard>
+          <p style={{ margin: 0, color: '#dc2626' }}>Unable to load this property record.</p>
+        </ContentCard>
+      </PageLayout>
+    )
+  }
 
   return (
-    <div>
-      <div style={{ marginBottom: '1rem' }}>
-        <Link to="/properties" style={{ color: '#555', fontSize: '0.875rem' }}>← Back to Properties</Link>
-      </div>
+    <PageLayout>
+      <PageHeader
+        eyebrow="Property"
+        title={property.name}
+        description="Review property information and manage its related units."
+        backTo="/properties"
+        backLabel="Back to Properties"
+        meta={<StatusBadge tone={property.is_active ? 'success' : 'danger'}>{property.is_active ? 'Active' : 'Inactive'}</StatusBadge>}
+        action={<ButtonLink to={`/properties/${property.id}/edit`} variant="primary">Edit Property</ButtonLink>}
+      />
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h2 style={{ margin: 0 }}>{property.name}</h2>
-        <span style={property.is_active ? badgeActive : badgeInactive}>
-          {property.is_active ? 'Active' : 'Inactive'}
-        </span>
-      </div>
+      <ContentCard>
+        <div style={{ display: 'grid', gap: '16px' }}>
+          <DetailItem label="Address" value={property.address} />
+          {property.description && <DetailItem label="Description" value={property.description} />}
+          <DetailItem label="Created" value={new Date(property.created_at).toLocaleDateString()} />
+        </div>
+      </ContentCard>
 
-      <div style={cardStyle}>
-        <p><strong>Address:</strong> {property.address}</p>
-        {property.description && <p><strong>Description:</strong> {property.description}</p>}
-        <p style={{ color: '#888', fontSize: '0.8rem' }}>Created: {new Date(property.created_at).toLocaleDateString()}</p>
+      <div style={{ marginTop: '14px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <ButtonLink to={`/properties/${property.id}/units`}>Manage Units</ButtonLink>
+        <ButtonLink to="/properties" variant="ghost">Back</ButtonLink>
       </div>
-
-      <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
-        <Link to={`/properties/${property.id}/edit`} style={btnStyle}>Edit</Link>
-        <Link to={`/properties/${property.id}/units`} style={btnStyle}>Manage Units</Link>
-      </div>
-    </div>
+    </PageLayout>
   )
 }
 
-const cardStyle: React.CSSProperties = { border: '1px solid #e0e0e0', borderRadius: '0.5rem', padding: '1rem', backgroundColor: '#fff' }
-const badgeActive: React.CSSProperties = { backgroundColor: '#d4edda', color: '#155724', padding: '0.2rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem', fontWeight: 600 }
-const badgeInactive: React.CSSProperties = { backgroundColor: '#f8d7da', color: '#721c24', padding: '0.2rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem', fontWeight: 600 }
-const btnStyle: React.CSSProperties = { padding: '0.5rem 1rem', border: '1px solid #ccc', borderRadius: '0.375rem', textDecoration: 'none', color: '#333', fontSize: '0.875rem' }
+function DetailItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p style={{ margin: '0 0 4px', color: '#71717a', fontSize: '0.78rem', fontWeight: 700 }}>{label}</p>
+      <p style={{ margin: 0, color: '#18181b', fontSize: '0.9rem', lineHeight: 1.6 }}>{value}</p>
+    </div>
+  )
+}
