@@ -1,37 +1,63 @@
-import { useParams, Link } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
+import { ButtonLink, ContentCard, PageHeader, PageLayout } from '@/components/ui/Page'
 import { useGuest } from './api'
 
 export default function GuestDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { data: guest, isLoading, error } = useGuest(Number(id))
 
-  if (isLoading) return <div>Loading guest...</div>
-  if (error) return <div style={{ color: 'red' }}>Guest not found.</div>
-  if (!guest) return <div>Guest not found.</div>
+  if (isLoading) {
+    return (
+      <PageLayout>
+        <PageHeader title="Guest" description="Loading guest details..." backTo="/guests" backLabel="Back to Guests" />
+        <ContentCard>Loading guest...</ContentCard>
+      </PageLayout>
+    )
+  }
+
+  if (error || !guest) {
+    return (
+      <PageLayout>
+        <PageHeader title="Guest unavailable" backTo="/guests" backLabel="Back to Guests" />
+        <ContentCard>
+          <p style={{ margin: 0, color: '#dc2626' }}>Unable to load this guest record.</p>
+        </ContentCard>
+      </PageLayout>
+    )
+  }
 
   return (
-    <div>
-      <div style={{ marginBottom: '1rem' }}>
-        <Link to="/guests" style={{ color: '#555', fontSize: '0.875rem' }}>← Back to Guests</Link>
+    <PageLayout>
+      <PageHeader
+        eyebrow="Guest"
+        title={guest.full_name}
+        description="Review guest contact and identification details used for bookings."
+        backTo="/guests"
+        backLabel="Back to Guests"
+        action={<ButtonLink to={`/guests/${guest.id}/edit`} variant="primary">Edit Guest</ButtonLink>}
+      />
+
+      <ContentCard>
+        <div style={{ display: 'grid', gap: '16px' }}>
+          <DetailItem label="Phone" value={guest.phone} />
+          {guest.email && <DetailItem label="Email" value={guest.email} />}
+          {guest.identification_number && <DetailItem label="Identification Number" value={guest.identification_number} />}
+          <DetailItem label="Created" value={new Date(guest.created_at).toLocaleDateString()} />
+        </div>
+      </ContentCard>
+
+      <div style={{ marginTop: '14px' }}>
+        <ButtonLink to="/guests" variant="ghost">Back</ButtonLink>
       </div>
-
-      <h2 style={{ marginBottom: '1rem' }}>{guest.full_name}</h2>
-
-      <div style={cardStyle}>
-        <p><strong>Phone:</strong> {guest.phone}</p>
-        {guest.email && <p><strong>Email:</strong> {guest.email}</p>}
-        {guest.identification_number && <p><strong>ID Number:</strong> {guest.identification_number}</p>}
-        <p style={{ color: '#888', fontSize: '0.8rem' }}>Created: {new Date(guest.created_at).toLocaleDateString()}</p>
-      </div>
-
-      <div style={{ marginTop: '1rem' }}>
-        <Link to={`/guests/${guest.id}/edit`} style={btnStyle}>Edit</Link>
-      </div>
-
-      {/* Booking history will be added when Booking frontend is implemented */}
-    </div>
+    </PageLayout>
   )
 }
 
-const cardStyle: React.CSSProperties = { border: '1px solid #e0e0e0', borderRadius: '0.5rem', padding: '1rem', backgroundColor: '#fff' }
-const btnStyle: React.CSSProperties = { padding: '0.5rem 1rem', border: '1px solid #ccc', borderRadius: '0.375rem', textDecoration: 'none', color: '#333', fontSize: '0.875rem' }
+function DetailItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p style={{ margin: '0 0 4px', color: '#71717a', fontSize: '0.78rem', fontWeight: 700 }}>{label}</p>
+      <p style={{ margin: 0, color: '#18181b', fontSize: '0.9rem', lineHeight: 1.6 }}>{value}</p>
+    </div>
+  )
+}
