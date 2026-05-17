@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Modules\Guest\Controllers\GuestController;
 use App\Modules\Property\Controllers\PropertyController;
 use App\Modules\Unit\Controllers\UnitController;
 use Illuminate\Support\Facades\Route;
@@ -61,4 +62,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/units/{id}', [UnitController::class, 'update']);
     Route::patch('/units/{id}/deactivate', [UnitController::class, 'deactivate']);
     Route::patch('/units/{id}/activate', [UnitController::class, 'activate']);
+
+    // Guests
+    Route::get('/guests', [GuestController::class, 'index']);
+    Route::post('/guests', [GuestController::class, 'store']);
+    Route::get('/guests/{id}', [GuestController::class, 'show']);
+    Route::put('/guests/{id}', [GuestController::class, 'update']);
+    Route::patch('/guests/{id}', [GuestController::class, 'update']);
 });
