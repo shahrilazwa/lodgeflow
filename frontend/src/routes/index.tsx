@@ -27,6 +27,7 @@ import ServiceProvidersPage from '@/features/service-providers/ServiceProvidersP
 import ServiceProviderFormPage from '@/features/service-providers/ServiceProviderFormPage'
 import CleaningTasksPage from '@/features/cleaning-tasks/CleaningTasksPage'
 import MaintenanceTasksPage from '@/features/maintenance-tasks/MaintenanceTasksPage'
+import MaintenanceTaskFormPage from '@/features/maintenance-tasks/MaintenanceTaskFormPage'
 
 export const router = createBrowserRouter([
   {
@@ -82,9 +83,13 @@ export const router = createBrowserRouter([
       { path: '/service-providers/create', element: <ServiceProviderFormPage /> },
       { path: '/service-providers/:id/edit', element: <ServiceProviderFormPage /> },
 
-      // Other modules (placeholders)
+      // Cleaning Tasks
       { path: '/cleaning-tasks', element: <CleaningTasksPage /> },
+
+      // Maintenance Tasks
       { path: '/maintenance-tasks', element: <MaintenanceTasksPage /> },
+      { path: '/maintenance-tasks/create', element: <MaintenanceTaskFormPage /> },
+      { path: '/maintenance-tasks/:id/edit', element: <MaintenanceTaskFormPage /> },
     ],
   },
 ])
