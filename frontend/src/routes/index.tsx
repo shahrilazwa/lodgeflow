@@ -15,6 +15,8 @@ import UnitsPage from '@/features/units/UnitsPage'
 import UnitDetailPage from '@/features/units/UnitDetailPage'
 import UnitFormPage from '@/features/units/UnitFormPage'
 import GuestsPage from '@/features/guests/GuestsPage'
+import GuestDetailPage from '@/features/guests/GuestDetailPage'
+import GuestFormPage from '@/features/guests/GuestFormPage'
 import BookingsPage from '@/features/bookings/BookingsPage'
 import PaymentsPage from '@/features/payments/PaymentsPage'
 import ExpensesPage from '@/features/expenses/ExpensesPage'
@@ -51,8 +53,13 @@ export const router = createBrowserRouter([
       { path: '/units/:id', element: <UnitDetailPage /> },
       { path: '/units/:id/edit', element: <UnitFormPage /> },
 
-      // Other modules (placeholders)
+      // Guests
       { path: '/guests', element: <GuestsPage /> },
+      { path: '/guests/create', element: <GuestFormPage /> },
+      { path: '/guests/:id', element: <GuestDetailPage /> },
+      { path: '/guests/:id/edit', element: <GuestFormPage /> },
+
+      // Other modules (placeholders)
       { path: '/bookings', element: <BookingsPage /> },
       { path: '/payments', element: <PaymentsPage /> },
       { path: '/expenses', element: <ExpensesPage /> },
