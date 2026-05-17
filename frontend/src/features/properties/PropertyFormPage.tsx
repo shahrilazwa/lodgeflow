@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { Button, ContentCard, Field, PageHeader, PageLayout, TextArea, TextInput } from '@/components/ui/Page'
 import { useCreateProperty, useProperty, useUpdateProperty } from './api'
 import type { AxiosError } from 'axios'
 import type { ValidationErrorResponse } from '@/types/api'
@@ -19,7 +20,6 @@ export default function PropertyFormPage() {
   const [errors, setErrors] = useState<Record<string, string[]>>({})
   const [initialized, setInitialized] = useState(false)
 
-  // Populate form when editing
   if (isEdit && existing && !initialized) {
     setName(existing.name)
     setAddress(existing.address)
@@ -27,7 +27,14 @@ export default function PropertyFormPage() {
     setInitialized(true)
   }
 
-  if (isEdit && isLoading) return <div>Loading...</div>
+  if (isEdit && isLoading) {
+    return (
+      <PageLayout width="narrow">
+        <PageHeader title="Property" description="Loading property form..." backTo="/properties" backLabel="Back to Properties" />
+        <ContentCard>Loading...</ContentCard>
+      </PageLayout>
+    )
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -51,42 +58,37 @@ export default function PropertyFormPage() {
   const isPending = createMutation.isPending || updateMutation.isPending
 
   return (
-    <div style={{ maxWidth: '500px' }}>
-      <h2>{isEdit ? 'Edit Property' : 'Create Property'}</h2>
+    <PageLayout width="narrow">
+      <PageHeader
+        eyebrow="Property"
+        title={isEdit ? 'Edit Property' : 'Create Property'}
+        description={isEdit ? 'Update property details used across units, bookings and operations.' : 'Create a property before adding units and managing bookings.'}
+        backTo="/properties"
+        backLabel="Back to Properties"
+      />
 
-      <form onSubmit={handleSubmit}>
-        <div style={fieldStyle}>
-          <label htmlFor="name" style={labelStyle}>Name *</label>
-          <input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} style={inputStyle} maxLength={100} />
-          {errors.name && <p style={errorStyle}>{errors.name[0]}</p>}
-        </div>
+      <ContentCard>
+        <form onSubmit={handleSubmit}>
+          <Field label="Name" htmlFor="name" required error={errors.name?.[0]}>
+            <TextInput id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} maxLength={100} />
+          </Field>
 
-        <div style={fieldStyle}>
-          <label htmlFor="address" style={labelStyle}>Address *</label>
-          <input id="address" type="text" value={address} onChange={(e) => setAddress(e.target.value)} style={inputStyle} maxLength={255} />
-          {errors.address && <p style={errorStyle}>{errors.address[0]}</p>}
-        </div>
+          <Field label="Address" htmlFor="address" required error={errors.address?.[0]}>
+            <TextInput id="address" type="text" value={address} onChange={(e) => setAddress(e.target.value)} maxLength={255} />
+          </Field>
 
-        <div style={fieldStyle}>
-          <label htmlFor="description" style={labelStyle}>Description</label>
-          <textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} style={{ ...inputStyle, minHeight: '80px' }} maxLength={1000} />
-          {errors.description && <p style={errorStyle}>{errors.description[0]}</p>}
-        </div>
+          <Field label="Description" htmlFor="description" error={errors.description?.[0]}>
+            <TextArea id="description" value={description} onChange={(e) => setDescription(e.target.value)} maxLength={1000} />
+          </Field>
 
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button type="submit" disabled={isPending} style={submitBtnStyle}>
-            {isPending ? 'Saving...' : isEdit ? 'Update' : 'Create'}
-          </button>
-          <button type="button" onClick={() => navigate('/properties')} style={cancelBtnStyle}>Cancel</button>
-        </div>
-      </form>
-    </div>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <Button type="submit" disabled={isPending} variant="primary">
+              {isPending ? 'Saving...' : isEdit ? 'Update Property' : 'Create Property'}
+            </Button>
+            <Button type="button" onClick={() => navigate('/properties')}>Cancel</Button>
+          </div>
+        </form>
+      </ContentCard>
+    </PageLayout>
   )
 }
-
-const fieldStyle: React.CSSProperties = { marginBottom: '1rem' }
-const labelStyle: React.CSSProperties = { display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', fontWeight: 500 }
-const inputStyle: React.CSSProperties = { width: '100%', padding: '0.5rem', border: '1px solid #ccc', borderRadius: '0.375rem', fontSize: '0.875rem', boxSizing: 'border-box' }
-const errorStyle: React.CSSProperties = { color: '#dc3545', fontSize: '0.8rem', margin: '0.25rem 0 0' }
-const submitBtnStyle: React.CSSProperties = { padding: '0.5rem 1.5rem', backgroundColor: '#1a1a2e', color: '#fff', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem' }
-const cancelBtnStyle: React.CSSProperties = { padding: '0.5rem 1.5rem', backgroundColor: '#fff', color: '#333', border: '1px solid #ccc', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem' }
