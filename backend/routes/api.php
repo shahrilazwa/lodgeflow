@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Modules\Booking\Controllers\BookingController;
 use App\Modules\Guest\Controllers\GuestController;
 use App\Modules\Property\Controllers\PropertyController;
 use App\Modules\Unit\Controllers\UnitController;
@@ -69,4 +70,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/guests/{id}', [GuestController::class, 'show']);
     Route::put('/guests/{id}', [GuestController::class, 'update']);
     Route::patch('/guests/{id}', [GuestController::class, 'update']);
+
+    // Bookings
+    Route::get('/bookings', [BookingController::class, 'index']);
+    Route::post('/bookings', [BookingController::class, 'store']);
+    Route::get('/bookings/{id}', [BookingController::class, 'show']);
+    Route::put('/bookings/{id}', [BookingController::class, 'update']);
+    Route::patch('/bookings/{id}', [BookingController::class, 'update']);
+    Route::patch('/bookings/{id}/check-in', [BookingController::class, 'checkIn']);
+    Route::patch('/bookings/{id}/check-out', [BookingController::class, 'checkOut']);
+    Route::patch('/bookings/{id}/cancel', [BookingController::class, 'cancel']);
 });
