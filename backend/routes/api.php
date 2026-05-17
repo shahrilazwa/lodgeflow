@@ -5,6 +5,7 @@ use App\Modules\Booking\Controllers\BookingController;
 use App\Modules\CleaningTask\Controllers\CleaningTaskController;
 use App\Modules\Expense\Controllers\ExpenseController;
 use App\Modules\Guest\Controllers\GuestController;
+use App\Modules\MaintenanceTask\Controllers\MaintenanceTaskController;
 use App\Modules\Payment\Controllers\PaymentController;
 use App\Modules\Property\Controllers\PropertyController;
 use App\Modules\ServiceProvider\Controllers\ServiceProviderController;
@@ -112,4 +113,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/cleaning-tasks/{id}', [CleaningTaskController::class, 'show']);
     Route::patch('/cleaning-tasks/{id}/status', [CleaningTaskController::class, 'updateStatus']);
     Route::patch('/cleaning-tasks/{id}/notes', [CleaningTaskController::class, 'updateNotes']);
+
+    // Maintenance Tasks
+    Route::get('/maintenance-tasks', [MaintenanceTaskController::class, 'index']);
+    Route::post('/maintenance-tasks', [MaintenanceTaskController::class, 'store']);
+    Route::get('/maintenance-tasks/{id}', [MaintenanceTaskController::class, 'show']);
+    Route::put('/maintenance-tasks/{id}', [MaintenanceTaskController::class, 'update']);
+    Route::patch('/maintenance-tasks/{id}', [MaintenanceTaskController::class, 'update']);
 });
