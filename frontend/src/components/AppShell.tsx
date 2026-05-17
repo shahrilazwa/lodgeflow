@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
-import { clearAuthToken } from '@/lib/api'
+import { useAuth } from '@/features/auth/useAuth'
 
 interface AppShellProps {
   children: ReactNode
@@ -24,8 +24,10 @@ const navItems = [
  * Uses inline styles for now — will be replaced with MYDS components as screens are built.
  */
 export default function AppShell({ children }: AppShellProps) {
+  const { logout, owner } = useAuth()
+
   function handleLogout() {
-    clearAuthToken()
+    logout()
     window.location.href = '/login'
   }
 
@@ -67,6 +69,9 @@ export default function AppShell({ children }: AppShellProps) {
         </nav>
 
         <div style={{ padding: '1rem', borderTop: '1px solid #333' }}>
+          {owner && (
+            <p style={{ margin: '0 0 0.5rem', fontSize: '0.8rem', color: '#aaa' }}>{owner.name}</p>
+          )}
           <button
             type="button"
             onClick={handleLogout}
