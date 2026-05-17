@@ -13,3 +13,17 @@ body {
   min-width: 320px;
   min-height: 100vh;
 }
+
+/* Responsive: stack public layout panels on narrow screens */
+@media (max-width: 768px) {
+  .public-layout {
+    flex-direction: column !important;
+  }
+  .public-layout .brand-panel {
+    padding: 2rem 1.5rem !important;
+    min-height: auto !important;
+  }
+  .public-layout .form-panel {
+    padding: 1.5rem !important;
+  }
+}
