@@ -32,23 +32,24 @@ export default function BookingDetailPage() {
     )
   }
 
+  const bookingId = booking.id
   const outstanding = Math.max(0, Number(booking.total_amount) - Number(booking.net_paid_amount))
   const overpaid = Math.max(0, Number(booking.net_paid_amount) - Number(booking.total_amount))
 
   async function handleCheckIn() {
-    await checkIn.mutateAsync(booking.id)
-    navigate(`/bookings/${booking.id}`)
+    await checkIn.mutateAsync(bookingId)
+    navigate(`/bookings/${bookingId}`)
   }
 
   async function handleCheckOut() {
-    await checkOut.mutateAsync(booking.id)
-    navigate(`/bookings/${booking.id}`)
+    await checkOut.mutateAsync(bookingId)
+    navigate(`/bookings/${bookingId}`)
   }
 
   async function handleCancel() {
     if (confirm('Are you sure you want to cancel this booking?')) {
-      await cancel.mutateAsync(booking.id)
-      navigate(`/bookings/${booking.id}`)
+      await cancel.mutateAsync(bookingId)
+      navigate(`/bookings/${bookingId}`)
     }
   }
 
@@ -56,7 +57,7 @@ export default function BookingDetailPage() {
     <PageLayout>
       <PageHeader
         eyebrow="Booking"
-        title={`Booking #${booking.id}`}
+        title={`Booking #${bookingId}`}
         description="Review stay details, payment state and booking workflow actions."
         backTo="/bookings"
         backLabel="Back to Bookings"
@@ -86,7 +87,7 @@ export default function BookingDetailPage() {
         {booking.status === 'confirmed' && (
           <>
             <Button type="button" variant="primary" onClick={handleCheckIn} disabled={checkIn.isPending}>{checkIn.isPending ? 'Processing...' : 'Check In'}</Button>
-            <ButtonLink to={`/bookings/${booking.id}/edit`}>Edit</ButtonLink>
+            <ButtonLink to={`/bookings/${bookingId}/edit`}>Edit</ButtonLink>
             <Button type="button" variant="danger" onClick={handleCancel} disabled={cancel.isPending}>{cancel.isPending ? 'Cancelling...' : 'Cancel Booking'}</Button>
           </>
         )}
@@ -100,7 +101,7 @@ export default function BookingDetailPage() {
 
       {(checkIn.error || checkOut.error || cancel.error) && <p style={{ marginTop: '10px', color: '#dc2626', fontSize: '0.85rem' }}>Status transition failed. The booking may not be in the correct state.</p>}
 
-      <PaymentSection bookingId={booking.id} />
+      <PaymentSection bookingId={bookingId} />
     </PageLayout>
   )
 }
