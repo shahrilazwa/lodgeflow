@@ -44,6 +44,7 @@ export default function UnitDetailPage() {
       <ContentCard>
         <div style={{ display: 'grid', gap: '16px' }}>
           <DetailItem label="Type" value={UNIT_TYPE_LABELS[unit.type]} />
+          <DetailItem label="Price Per Night" value={unit.price_per_night ? `RM ${Number(unit.price_per_night).toFixed(2)}` : 'Not set'} />
           {unit.description && <DetailItem label="Description" value={unit.description} />}
           <DetailItem label="Created" value={new Date(unit.created_at).toLocaleDateString()} />
         </div>
