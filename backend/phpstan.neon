@@ -1,3 +1,4 @@
+# PHPStan / Larastan configuration
 includes:
     - vendor/larastan/larastan/extension.neon
 
@@ -5,9 +6,3 @@ parameters:
     paths:
         - app/
     level: 5
-    ignoreErrors:
-        # Booking date fields are cast to Carbon via Eloquent casts, but PHPStan
-        # sees them as string from $fillable. These format() calls are safe.
-        -
-            message: '#Cannot call method format\(\) on string#'
-            path: app/Modules/Booking/Services/BookingService.php

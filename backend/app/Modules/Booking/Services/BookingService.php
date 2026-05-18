@@ -9,6 +9,7 @@ use App\Modules\Property\Models\Property;
 use App\Modules\Unit\Models\Unit;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Carbon;
 
 class BookingService
 {
@@ -95,8 +96,8 @@ class BookingService
                 'message' => 'Booking dates overlap with an existing booking.',
                 'conflicting_booking' => [
                     'id' => $overlap->id,
-                    'check_in_date' => $overlap->check_in_date->format('Y-m-d'),
-                    'check_out_date' => $overlap->check_out_date->format('Y-m-d'),
+                    'check_in_date' => Carbon::parse($overlap->check_in_date)->format('Y-m-d'),
+                    'check_out_date' => Carbon::parse($overlap->check_out_date)->format('Y-m-d'),
                 ],
             ], 409);
         }
@@ -139,8 +140,8 @@ class BookingService
             ], 422);
         }
 
-        $checkIn = $data['check_in_date'] ?? $booking->check_in_date->format('Y-m-d');
-        $checkOut = $data['check_out_date'] ?? $booking->check_out_date->format('Y-m-d');
+        $checkIn = $data['check_in_date'] ?? Carbon::parse($booking->check_in_date)->format('Y-m-d');
+        $checkOut = $data['check_out_date'] ?? Carbon::parse($booking->check_out_date)->format('Y-m-d');
 
         // Check date overlap if dates changed
         if (isset($data['check_in_date']) || isset($data['check_out_date'])) {
@@ -156,8 +157,8 @@ class BookingService
                     'message' => 'Booking dates overlap with an existing booking.',
                     'conflicting_booking' => [
                         'id' => $overlap->id,
-                        'check_in_date' => $overlap->check_in_date->format('Y-m-d'),
-                        'check_out_date' => $overlap->check_out_date->format('Y-m-d'),
+                        'check_in_date' => Carbon::parse($overlap->check_in_date)->format('Y-m-d'),
+                        'check_out_date' => Carbon::parse($overlap->check_out_date)->format('Y-m-d'),
                     ],
                 ], 409);
             }
@@ -193,6 +194,26 @@ class BookingService
             ], 422);
         }
 
+        $today = Carbon::today();
+        $checkIn = Carbon::parse($booking->check_in_date)->startOfDay();
+        $checkOut = Carbon::parse($booking->check_out_date)->startOfDay();
+        $checkInDate = $checkIn->toDateString();
+        $checkOutDate = $checkOut->toDateString();
+
+        if ($today->lt($checkIn)) {
+            return response()->json([
+                'message' => "Booking can only be checked in on or after {$checkInDate}.",
+                'errors' => ['check_in_date' => ["Check-in is not allowed before {$checkInDate}."]],
+            ], 422);
+        }
+
+        if ($today->gte($checkOut)) {
+            return response()->json([
+                'message' => "Booking can no longer be checked in on or after the check-out date ({$checkOutDate}).",
+                'errors' => ['check_out_date' => ["Check-in is not allowed on or after {$checkOutDate}."]],
+            ], 422);
+        }
+
         $booking->update(['status' => Booking::STATUS_CHECKED_IN]);
 
         return $booking->fresh()->load(['unit', 'guest']);
@@ -208,6 +229,17 @@ class BookingService
             return response()->json([
                 'message' => 'Booking can only be checked out from checked_in status.',
                 'current_status' => $booking->status,
+            ], 422);
+        }
+
+        $today = Carbon::today();
+        $checkIn = Carbon::parse($booking->check_in_date)->startOfDay();
+        $checkInDate = $checkIn->toDateString();
+
+        if ($today->lt($checkIn)) {
+            return response()->json([
+                'message' => "Booking can only be checked out on or after {$checkInDate}.",
+                'errors' => ['check_in_date' => ["Check-out is not allowed before {$checkInDate}."]],
             ], 422);
         }
 
