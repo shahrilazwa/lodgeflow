@@ -18,6 +18,7 @@ export default function UnitFormPage() {
 
   const [name, setName] = useState('')
   const [type, setType] = useState<UnitType>('room')
+  const [pricePerNight, setPricePerNight] = useState('')
   const [description, setDescription] = useState('')
   const [errors, setErrors] = useState<Record<string, string[]>>({})
   const [initialized, setInitialized] = useState(false)
@@ -25,6 +26,7 @@ export default function UnitFormPage() {
   if (isEdit && existing && !initialized) {
     setName(existing.name)
     setType(existing.type)
+    setPricePerNight(existing.price_per_night || '')
     setDescription(existing.description || '')
     setInitialized(true)
   }
@@ -46,12 +48,19 @@ export default function UnitFormPage() {
     e.preventDefault()
     setErrors({})
 
+    const payload = {
+      name,
+      type,
+      description: description || null,
+      price_per_night: pricePerNight ? Number(pricePerNight) : null,
+    }
+
     try {
       if (isEdit) {
-        await updateMutation.mutateAsync({ name, type, description: description || null })
+        await updateMutation.mutateAsync(payload)
         navigate(`/properties/${existing?.property_id}/units`)
       } else {
-        await createMutation.mutateAsync({ name, type, description: description || undefined })
+        await createMutation.mutateAsync({ ...payload, description: description || undefined })
         navigate(`/properties/${propertyId}/units`)
       }
     } catch (err) {
@@ -69,7 +78,7 @@ export default function UnitFormPage() {
       <PageHeader
         eyebrow="Unit"
         title={isEdit ? 'Edit Unit' : 'Create Unit'}
-        description={isEdit ? 'Update unit details used for bookings and operations.' : 'Create a room, bed, hall or rentable space under this property.'}
+        description={isEdit ? 'Update unit details, type and nightly price.' : 'Create a room, bed, hall or whole-house unit under this property.'}
         backTo={backPath}
         backLabel="Back to Units"
       />
@@ -86,6 +95,10 @@ export default function UnitFormPage() {
                 <option key={t} value={t}>{UNIT_TYPE_LABELS[t]}</option>
               ))}
             </select>
+          </Field>
+
+          <Field label="Price Per Night (RM)" htmlFor="price_per_night" error={errors.price_per_night?.[0]}>
+            <TextInput id="price_per_night" type="number" step="0.01" min="0" value={pricePerNight} onChange={(e) => setPricePerNight(e.target.value)} />
           </Field>
 
           <Field label="Description" htmlFor="description" error={errors.description?.[0]}>

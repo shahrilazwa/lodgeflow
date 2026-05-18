@@ -24,9 +24,10 @@ class UnitFactory extends Factory
         return [
             'owner_id' => Owner::factory(),
             'property_id' => Property::factory(),
-            'name' => 'Room '.fake()->unique()->numberBetween(1, 999),
+            'name' => 'Unit '.fake()->unique()->numberBetween(1, 999),
             'type' => fake()->randomElement(Unit::TYPES),
             'description' => fake()->optional()->sentence(),
+            'price_per_night' => fake()->randomFloat(2, 80, 800),
             'is_active' => true,
         ];
     }

@@ -40,6 +40,7 @@ class UnitService
             'name' => $data['name'],
             'type' => $data['type'],
             'description' => $data['description'] ?? null,
+            'price_per_night' => $data['price_per_night'] ?? null,
         ]);
 
         return $unit->fresh();
@@ -64,7 +65,8 @@ class UnitService
             'name' => $data['name'] ?? null,
             'type' => $data['type'] ?? null,
             'description' => array_key_exists('description', $data) ? $data['description'] : null,
-        ], fn ($value, $key) => $key === 'description' ? array_key_exists($key, $data) : $value !== null, ARRAY_FILTER_USE_BOTH));
+            'price_per_night' => array_key_exists('price_per_night', $data) ? $data['price_per_night'] : null,
+        ], fn ($value, $key) => in_array($key, ['description', 'price_per_night'], true) ? array_key_exists($key, $data) : $value !== null, ARRAY_FILTER_USE_BOTH));
 
         return $unit->fresh();
     }

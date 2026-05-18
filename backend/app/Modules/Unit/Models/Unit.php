@@ -17,7 +17,7 @@ class Unit extends Model
     /**
      * Valid unit types.
      */
-    public const TYPES = ['room', 'suite', 'dormitory_bed', 'entire_unit'];
+    public const TYPES = ['room', 'suite', 'dormitory_bed', 'entire_unit', 'whole_house'];
 
     protected $fillable = [
         'owner_id',
@@ -25,12 +25,14 @@ class Unit extends Model
         'name',
         'type',
         'description',
+        'price_per_night',
         'is_active',
     ];
 
     protected function casts(): array
     {
         return [
+            'price_per_night' => 'decimal:2',
             'is_active' => 'boolean',
         ];
     }
