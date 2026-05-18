@@ -3,6 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Button, ContentCard, Field, PageHeader, PageLayout, TextInput } from '@/components/ui/Page'
 import { useCreateBooking, useBooking, useUpdateBooking } from './api'
 import { useGuests } from '@/features/guests/api'
+import { useProperties } from '@/features/properties/api'
+import { useUnitsForProperty } from '@/features/units/api'
+import { UNIT_TYPE_LABELS } from '@/features/units/types'
 import type { AxiosError } from 'axios'
 import type { ValidationErrorResponse, ApiErrorResponse } from '@/types/api'
 
@@ -15,6 +18,11 @@ export default function BookingFormPage() {
   const createMutation = useCreateBooking()
   const updateMutation = useUpdateBooking(Number(id))
   const { data: guests } = useGuests()
+  const { data: properties } = useProperties()
+
+  const [propertyId, setPropertyId] = useState('')
+  const selectedPropertyId = Number(propertyId)
+  const { data: units, isLoading: loadingUnits } = useUnitsForProperty(selectedPropertyId)
 
   const [unitId, setUnitId] = useState('')
   const [guestId, setGuestId] = useState('')
@@ -76,7 +84,7 @@ export default function BookingFormPage() {
       <PageHeader
         eyebrow="Booking"
         title={isEdit ? 'Edit Booking' : 'Create Booking'}
-        description={isEdit ? 'Update stay dates and booking amount.' : 'Create a booking by selecting a guest, unit and stay dates.'}
+        description={isEdit ? 'Update stay dates and booking amount.' : 'Create a booking by selecting a guest, property, unit and stay dates.'}
         backTo="/bookings"
         backLabel="Back to Bookings"
       />
@@ -94,8 +102,29 @@ export default function BookingFormPage() {
                 </select>
               </Field>
 
-              <Field label="Unit ID" htmlFor="unit_id" required error={errors.unit_id?.[0]}>
-                <TextInput id="unit_id" type="number" value={unitId} onChange={(e) => setUnitId(e.target.value)} required min={1} />
+              <Field label="Property" htmlFor="property_id" required>
+                <select
+                  id="property_id"
+                  value={propertyId}
+                  onChange={(e) => {
+                    setPropertyId(e.target.value)
+                    setUnitId('')
+                  }}
+                  className="ui-input"
+                  required
+                >
+                  <option value="">Select a property...</option>
+                  {properties?.map((property) => <option key={property.id} value={property.id}>{property.name}</option>)}
+                </select>
+              </Field>
+
+              <Field label="Unit" htmlFor="unit_id" required error={errors.unit_id?.[0]}>
+                <select id="unit_id" value={unitId} onChange={(e) => setUnitId(e.target.value)} className="ui-input" required disabled={!propertyId || loadingUnits}>
+                  <option value="">{propertyId ? (loadingUnits ? 'Loading units...' : 'Select a unit...') : 'Select a property first...'}</option>
+                  {units?.filter((unit) => unit.is_active).map((unit) => (
+                    <option key={unit.id} value={unit.id}>{unit.name} — {UNIT_TYPE_LABELS[unit.type]}</option>
+                  ))}
+                </select>
               </Field>
             </>
           )}
