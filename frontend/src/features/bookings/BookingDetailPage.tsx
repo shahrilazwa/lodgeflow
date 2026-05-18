@@ -35,6 +35,7 @@ export default function BookingDetailPage() {
   const bookingId = booking.id
   const outstanding = Math.max(0, Number(booking.total_amount) - Number(booking.net_paid_amount))
   const overpaid = Math.max(0, Number(booking.net_paid_amount) - Number(booking.total_amount))
+  const transitionError = getTransitionError(checkIn.error || checkOut.error || cancel.error)
 
   async function handleCheckIn() {
     await checkIn.mutateAsync(bookingId)
@@ -73,8 +74,8 @@ export default function BookingDetailPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '16px' }}>
           <DetailItem label="Guest" value={booking.guest?.full_name || '—'} />
           <DetailItem label="Unit" value={booking.unit?.name || '—'} />
-          <DetailItem label="Check-in" value={booking.check_in_date} />
-          <DetailItem label="Check-out" value={booking.check_out_date} />
+          <DetailItem label="Check-in" value={formatDate(booking.check_in_date)} />
+          <DetailItem label="Check-out" value={formatDate(booking.check_out_date)} />
           <DetailItem label="Total Amount" value={`RM ${Number(booking.total_amount).toFixed(2)}`} />
           <DetailItem label="Net Paid" value={`RM ${Number(booking.net_paid_amount).toFixed(2)}`} />
         </div>
@@ -99,7 +100,7 @@ export default function BookingDetailPage() {
         )}
       </div>
 
-      {(checkIn.error || checkOut.error || cancel.error) && <p style={{ marginTop: '10px', color: '#dc2626', fontSize: '0.85rem' }}>Status transition failed. The booking may not be in the correct state.</p>}
+      {transitionError && <p style={{ marginTop: '10px', color: '#dc2626', fontSize: '0.85rem' }}>{transitionError}</p>}
 
       <PaymentSection bookingId={bookingId} />
     </PageLayout>
@@ -130,4 +131,14 @@ function bookingStatusTone(status: string): Tone {
 function paymentStatusTone(status: string): Tone {
   const tones: Record<string, Tone> = { unpaid: 'danger', partial: 'warning', paid: 'success', overpaid: 'info', refunded: 'neutral' }
   return tones[status] ?? 'neutral'
+}
+
+function formatDate(value: string): string {
+  return new Intl.DateTimeFormat('en-MY', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value))
+}
+
+function getTransitionError(error: unknown): string {
+  if (!error || typeof error !== 'object') return ''
+  const maybeAxiosError = error as { response?: { data?: { message?: string } } }
+  return maybeAxiosError.response?.data?.message || 'Status transition failed. The booking may not be in the correct state.'
 }
