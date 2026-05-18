@@ -50,7 +50,7 @@ function StandaloneUnitsPage() {
       {properties && properties.length === 0 && (
         <EmptyState
           title="No properties yet"
-          description="Create a property first, then add rooms, beds, halls or other rentable spaces under it."
+          description="Create a property first, then add bookable spaces under it."
           action={<ButtonLink to="/properties/create" variant="primary">+ New Property</ButtonLink>}
         />
       )}
@@ -93,7 +93,7 @@ function PropertyUnitsPage({ propertyId }: { propertyId: number }) {
   if (error) {
     return (
       <PageLayout>
-        <PageHeader title="Units" description="Manage rooms and rentable spaces." backTo="/properties" backLabel="Back to Properties" />
+        <PageHeader title="Units" description="Manage bookable spaces." backTo="/properties" backLabel="Back to Properties" />
         <ContentCard><p style={{ margin: 0, color: '#dc2626' }}>Error loading units.</p></ContentCard>
       </PageLayout>
     )
@@ -104,7 +104,7 @@ function PropertyUnitsPage({ propertyId }: { propertyId: number }) {
       <PageHeader
         eyebrow="Units"
         title={property?.name ? `Units — ${property.name}` : 'Units'}
-        description="Manage rooms, beds, halls and other rentable spaces under this property."
+        description="Manage rooms, beds and whole-property units under this property."
         backTo="/properties"
         backLabel="Back to Properties"
         action={<ButtonLink to={`/properties/${propertyId}/units/create`} variant="primary">+ New Unit</ButtonLink>}
@@ -126,7 +126,10 @@ function PropertyUnitsPage({ propertyId }: { propertyId: number }) {
                 <Link to={`/units/${unit.id}`} style={{ textDecoration: 'none', color: '#18181b' }}>
                   <h2 style={{ margin: '0 0 6px', fontSize: '1rem', fontWeight: 800 }}>{unit.name}</h2>
                 </Link>
-                <StatusBadge tone="info">{UNIT_TYPE_LABELS[unit.type]}</StatusBadge>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  <StatusBadge tone="info">{UNIT_TYPE_LABELS[unit.type]}</StatusBadge>
+                  {unit.price_per_night && <StatusBadge tone="neutral">RM {Number(unit.price_per_night).toFixed(2)} / night</StatusBadge>}
+                </div>
                 {unit.description && <p style={{ margin: '8px 0 0', color: '#71717a', fontSize: '0.8rem' }}>{unit.description}</p>}
               </div>
               <StatusBadge tone={unit.is_active ? 'success' : 'danger'}>{unit.is_active ? 'Active' : 'Inactive'}</StatusBadge>
