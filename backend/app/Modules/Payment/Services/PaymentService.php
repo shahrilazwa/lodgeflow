@@ -9,6 +9,39 @@ use Illuminate\Database\Eloquent\Collection;
 class PaymentService
 {
     /**
+     * List all payments for an owner with optional filters.
+     */
+    public function listForOwner(int $ownerId, array $filters = []): Collection
+    {
+        $query = Payment::where('owner_id', $ownerId)
+            ->with(['booking.guest', 'booking.unit']);
+
+        if (! empty($filters['type'])) {
+            $query->where('type', $filters['type']);
+        }
+
+        if (! empty($filters['payment_method'])) {
+            $query->where('payment_method', $filters['payment_method']);
+        }
+
+        if (! empty($filters['booking_id'])) {
+            $query->where('booking_id', $filters['booking_id']);
+        }
+
+        if (! empty($filters['from_date'])) {
+            $query->where('payment_date', '>=', $filters['from_date']);
+        }
+
+        if (! empty($filters['to_date'])) {
+            $query->where('payment_date', '<=', $filters['to_date']);
+        }
+
+        return $query->orderBy('payment_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->get();
+    }
+
+    /**
      * List all payments for a booking, scoped to the given owner.
      */
     public function listForBooking(int $bookingId, int $ownerId): Collection
