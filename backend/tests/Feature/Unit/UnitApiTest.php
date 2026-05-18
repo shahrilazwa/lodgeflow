@@ -78,11 +78,13 @@ class UnitApiTest extends TestCase
                 'name' => 'Room 101',
                 'type' => 'room',
                 'description' => 'A standard room.',
+                'price_per_night' => 180.00,
             ]);
 
         $response->assertStatus(201)
             ->assertJsonPath('data.name', 'Room 101')
             ->assertJsonPath('data.type', 'room')
+            ->assertJsonPath('data.price_per_night', '180.00')
             ->assertJsonPath('data.property_id', $this->property->id)
             ->assertJsonPath('data.owner_id', $this->owner->id)
             ->assertJsonPath('data.is_active', true);
@@ -90,7 +92,23 @@ class UnitApiTest extends TestCase
         $this->assertDatabaseHas('units', [
             'name' => 'Room 101',
             'property_id' => $this->property->id,
+            'price_per_night' => 180.00,
         ]);
+    }
+
+    public function test_owner_can_create_whole_house_unit(): void
+    {
+        $response = $this->actingAs($this->owner, 'sanctum')
+            ->postJson("/api/v1/properties/{$this->property->id}/units", [
+                'name' => 'Whole House',
+                'type' => 'whole_house',
+                'price_per_night' => 450.00,
+            ]);
+
+        $response->assertStatus(201)
+            ->assertJsonPath('data.name', 'Whole House')
+            ->assertJsonPath('data.type', 'whole_house')
+            ->assertJsonPath('data.price_per_night', '450.00');
     }
 
     public function test_owner_can_create_unit_without_description(): void
@@ -124,6 +142,19 @@ class UnitApiTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['type']);
+    }
+
+    public function test_create_unit_validates_price_per_night(): void
+    {
+        $response = $this->actingAs($this->owner, 'sanctum')
+            ->postJson("/api/v1/properties/{$this->property->id}/units", [
+                'name' => 'Room 104',
+                'type' => 'room',
+                'price_per_night' => -1,
+            ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['price_per_night']);
     }
 
     public function test_create_unit_validates_max_lengths(): void
@@ -248,12 +279,14 @@ class UnitApiTest extends TestCase
                 'name' => 'Updated Room',
                 'type' => 'suite',
                 'description' => 'Updated description.',
+                'price_per_night' => 220.00,
             ]);
 
         $response->assertStatus(200)
             ->assertJsonPath('data.name', 'Updated Room')
             ->assertJsonPath('data.type', 'suite')
-            ->assertJsonPath('data.description', 'Updated description.');
+            ->assertJsonPath('data.description', 'Updated description.')
+            ->assertJsonPath('data.price_per_night', '220.00');
     }
 
     public function test_owner_can_partially_update_unit(): void
