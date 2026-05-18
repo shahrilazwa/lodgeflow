@@ -9,6 +9,7 @@ use App\Modules\Property\Models\Property;
 use App\Modules\Unit\Models\Unit;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Carbon;
 
 class BookingService
 {
@@ -193,6 +194,24 @@ class BookingService
             ], 422);
         }
 
+        $today = Carbon::today();
+        $checkInDate = $booking->check_in_date->toDateString();
+        $checkOutDate = $booking->check_out_date->toDateString();
+
+        if ($today->lt($booking->check_in_date->startOfDay())) {
+            return response()->json([
+                'message' => "Booking can only be checked in on or after {$checkInDate}.",
+                'errors' => ['check_in_date' => ["Check-in is not allowed before {$checkInDate}."]],
+            ], 422);
+        }
+
+        if ($today->gte($booking->check_out_date->startOfDay())) {
+            return response()->json([
+                'message' => "Booking can no longer be checked in on or after the check-out date ({$checkOutDate}).",
+                'errors' => ['check_out_date' => ["Check-in is not allowed on or after {$checkOutDate}."]],
+            ], 422);
+        }
+
         $booking->update(['status' => Booking::STATUS_CHECKED_IN]);
 
         return $booking->fresh()->load(['unit', 'guest']);
@@ -208,6 +227,16 @@ class BookingService
             return response()->json([
                 'message' => 'Booking can only be checked out from checked_in status.',
                 'current_status' => $booking->status,
+            ], 422);
+        }
+
+        $today = Carbon::today();
+        $checkInDate = $booking->check_in_date->toDateString();
+
+        if ($today->lt($booking->check_in_date->startOfDay())) {
+            return response()->json([
+                'message' => "Booking can only be checked out on or after {$checkInDate}.",
+                'errors' => ['check_in_date' => ["Check-out is not allowed before {$checkInDate}."]],
             ], 422);
         }
 
