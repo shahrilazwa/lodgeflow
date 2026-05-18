@@ -87,6 +87,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/bookings/{id}/check-out', [BookingController::class, 'checkOut']);
     Route::patch('/bookings/{id}/cancel', [BookingController::class, 'cancel']);
 
+    // Payments ledger
+    Route::get('/payments', [PaymentController::class, 'ledger']);
+
     // Payments (nested under bookings)
     Route::get('/bookings/{bookingId}/payments', [PaymentController::class, 'index']);
     Route::post('/bookings/{bookingId}/payments', [PaymentController::class, 'store']);
