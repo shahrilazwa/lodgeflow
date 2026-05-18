@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button, ContentCard, Field, PageHeader, PageLayout, TextInput } from '@/components/ui/Page'
 import { useCreateBooking, useBooking, useUpdateBooking } from './api'
@@ -29,9 +29,22 @@ export default function BookingFormPage() {
   const [checkInDate, setCheckInDate] = useState('')
   const [checkOutDate, setCheckOutDate] = useState('')
   const [totalAmount, setTotalAmount] = useState('')
+  const [totalManuallyEdited, setTotalManuallyEdited] = useState(false)
   const [errors, setErrors] = useState<Record<string, string[]>>({})
   const [generalError, setGeneralError] = useState('')
   const [initialized, setInitialized] = useState(false)
+
+  const selectedUnit = useMemo(() => units?.find((unit) => String(unit.id) === unitId), [units, unitId])
+  const nights = calculateNights(checkInDate, checkOutDate)
+  const calculatedTotal = selectedUnit?.price_per_night && nights > 0
+    ? (Number(selectedUnit.price_per_night) * nights).toFixed(2)
+    : ''
+
+  useEffect(() => {
+    if (!isEdit && !totalManuallyEdited && calculatedTotal) {
+      setTotalAmount(calculatedTotal)
+    }
+  }, [calculatedTotal, isEdit, totalManuallyEdited])
 
   if (isEdit && existing && !initialized) {
     setUnitId(String(existing.unit_id))
@@ -109,6 +122,7 @@ export default function BookingFormPage() {
                   onChange={(e) => {
                     setPropertyId(e.target.value)
                     setUnitId('')
+                    setTotalManuallyEdited(false)
                   }}
                   className="ui-input"
                   required
@@ -119,10 +133,22 @@ export default function BookingFormPage() {
               </Field>
 
               <Field label="Unit" htmlFor="unit_id" required error={errors.unit_id?.[0]}>
-                <select id="unit_id" value={unitId} onChange={(e) => setUnitId(e.target.value)} className="ui-input" required disabled={!propertyId || loadingUnits}>
+                <select
+                  id="unit_id"
+                  value={unitId}
+                  onChange={(e) => {
+                    setUnitId(e.target.value)
+                    setTotalManuallyEdited(false)
+                  }}
+                  className="ui-input"
+                  required
+                  disabled={!propertyId || loadingUnits}
+                >
                   <option value="">{propertyId ? (loadingUnits ? 'Loading units...' : 'Select a unit...') : 'Select a property first...'}</option>
                   {units?.filter((unit) => unit.is_active).map((unit) => (
-                    <option key={unit.id} value={unit.id}>{unit.name} — {UNIT_TYPE_LABELS[unit.type]}</option>
+                    <option key={unit.id} value={unit.id}>
+                      {unit.name} - {UNIT_TYPE_LABELS[unit.type]}{unit.price_per_night ? ` - RM ${Number(unit.price_per_night).toFixed(2)} / night` : ''}
+                    </option>
                   ))}
                 </select>
               </Field>
@@ -130,15 +156,21 @@ export default function BookingFormPage() {
           )}
 
           <Field label="Check-in Date" htmlFor="check_in_date" required error={errors.check_in_date?.[0]}>
-            <TextInput id="check_in_date" type="date" value={checkInDate} onChange={(e) => setCheckInDate(e.target.value)} required />
+            <TextInput id="check_in_date" type="date" value={checkInDate} onChange={(e) => { setCheckInDate(e.target.value); setTotalManuallyEdited(false) }} required />
           </Field>
 
           <Field label="Check-out Date" htmlFor="check_out_date" required error={errors.check_out_date?.[0]}>
-            <TextInput id="check_out_date" type="date" value={checkOutDate} onChange={(e) => setCheckOutDate(e.target.value)} required />
+            <TextInput id="check_out_date" type="date" value={checkOutDate} onChange={(e) => { setCheckOutDate(e.target.value); setTotalManuallyEdited(false) }} required />
           </Field>
 
+          {!isEdit && selectedUnit?.price_per_night && nights > 0 && (
+            <div style={{ marginBottom: '16px', padding: '10px 12px', borderRadius: '10px', background: '#eff6ff', color: '#2563eb', fontSize: '0.84rem', fontWeight: 700 }}>
+              Auto-calculated: {nights} night{nights === 1 ? '' : 's'} at RM {Number(selectedUnit.price_per_night).toFixed(2)} per night = RM {calculatedTotal}
+            </div>
+          )}
+
           <Field label="Total Amount (RM)" htmlFor="total_amount" required error={errors.total_amount?.[0]}>
-            <TextInput id="total_amount" type="number" step="0.01" min="0.01" value={totalAmount} onChange={(e) => setTotalAmount(e.target.value)} required />
+            <TextInput id="total_amount" type="number" step="0.01" min="0.01" value={totalAmount} onChange={(e) => { setTotalAmount(e.target.value); setTotalManuallyEdited(true) }} required />
           </Field>
 
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -149,4 +181,16 @@ export default function BookingFormPage() {
       </ContentCard>
     </PageLayout>
   )
+}
+
+function calculateNights(checkInDate: string, checkOutDate: string): number {
+  if (!checkInDate || !checkOutDate) return 0
+
+  const checkIn = new Date(`${checkInDate}T00:00:00`)
+  const checkOut = new Date(`${checkOutDate}T00:00:00`)
+  const diffMs = checkOut.getTime() - checkIn.getTime()
+
+  if (diffMs <= 0) return 0
+
+  return Math.round(diffMs / 86400000)
 }
