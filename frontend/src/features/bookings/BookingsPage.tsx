@@ -44,7 +44,7 @@ export default function BookingsPage() {
                 <Link to={`/bookings/${booking.id}`} style={{ textDecoration: 'none', color: '#18181b' }}>
                   <h2 style={{ margin: '0 0 6px', fontSize: '1rem', fontWeight: 800 }}>{booking.guest?.full_name || 'Guest'} — {booking.unit?.name || 'Unit'}</h2>
                 </Link>
-                <p style={{ margin: 0, color: '#52525b', fontSize: '0.86rem' }}>{booking.check_in_date} → {booking.check_out_date}</p>
+                <p style={{ margin: 0, color: '#52525b', fontSize: '0.86rem' }}>{formatDate(booking.check_in_date)} → {formatDate(booking.check_out_date)}</p>
                 <p style={{ margin: '6px 0 0', color: '#18181b', fontSize: '0.86rem', fontWeight: 700 }}>RM {Number(booking.total_amount).toFixed(2)}</p>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-end' }}>
@@ -70,4 +70,8 @@ function bookingStatusTone(status: string): Tone {
 function paymentStatusTone(status: string): Tone {
   const tones: Record<string, Tone> = { unpaid: 'danger', partial: 'warning', paid: 'success', overpaid: 'info', refunded: 'neutral' }
   return tones[status] ?? 'neutral'
+}
+
+function formatDate(value: string): string {
+  return new Intl.DateTimeFormat('en-MY', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value))
 }
