@@ -15,6 +15,24 @@ class PaymentController extends Controller
     ) {}
 
     /**
+     * List all payments for the authenticated owner.
+     */
+    public function ledger(Request $request): JsonResponse
+    {
+        $filters = $request->validate([
+            'type' => ['nullable', 'in:payment,refund'],
+            'payment_method' => ['nullable', 'in:cash,bank_transfer,other'],
+            'booking_id' => ['nullable', 'integer'],
+            'from_date' => ['nullable', 'date'],
+            'to_date' => ['nullable', 'date', 'after_or_equal:from_date'],
+        ]);
+
+        $payments = $this->paymentService->listForOwner($request->user()->id, $filters);
+
+        return response()->json(['data' => $payments]);
+    }
+
+    /**
      * List all payments for a booking.
      */
     public function index(Request $request, int $bookingId): JsonResponse
