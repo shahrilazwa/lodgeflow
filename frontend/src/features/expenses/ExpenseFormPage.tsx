@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { Button, ContentCard, Field, PageHeader, PageLayout, TextArea, TextInput } from '@/components/ui/Page'
 import { useCreateExpense, useExpense, useUpdateExpense } from './api'
 import { EXPENSE_CATEGORIES, EXPENSE_CATEGORY_LABELS } from './types'
 import { useProperties } from '@/features/properties/api'
@@ -39,7 +40,14 @@ export default function ExpenseFormPage() {
     setInitialized(true)
   }
 
-  if (isEdit && isLoading) return <div>Loading...</div>
+  if (isEdit && isLoading) {
+    return (
+      <PageLayout width="narrow">
+        <PageHeader title="Expense" description="Loading expense form..." backTo="/expenses" backLabel="Back to Expenses" />
+        <ContentCard>Loading...</ContentCard>
+      </PageLayout>
+    )
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -75,74 +83,57 @@ export default function ExpenseFormPage() {
   const isPending = createMutation.isPending || updateMutation.isPending
 
   return (
-    <div style={{ maxWidth: '500px' }}>
-      <h2>{isEdit ? 'Edit Expense' : 'Create Expense'}</h2>
+    <PageLayout width="narrow">
+      <PageHeader
+        eyebrow="Expense"
+        title={isEdit ? 'Edit Expense' : 'Create Expense'}
+        description={isEdit ? 'Update expense amount, category and related property.' : 'Record a new cost against a property or service provider.'}
+        backTo="/expenses"
+        backLabel="Back to Expenses"
+      />
 
-      {generalError && <div style={alertStyle}>{generalError}</div>}
+      {generalError && <ContentCard><p style={{ margin: 0, color: '#dc2626' }}>{generalError}</p></ContentCard>}
 
-      <form onSubmit={handleSubmit}>
-        <div style={fieldStyle}>
-          <label htmlFor="amount" style={labelStyle}>Amount (RM) *</label>
-          <input id="amount" type="number" step="0.01" min="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} style={inputStyle} required />
-          {errors.amount && <p style={errorStyle}>{errors.amount[0]}</p>}
-        </div>
+      <ContentCard>
+        <form onSubmit={handleSubmit}>
+          <Field label="Amount (RM)" htmlFor="amount" required error={errors.amount?.[0]}>
+            <TextInput id="amount" type="number" step="0.01" min="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} required />
+          </Field>
 
-        <div style={fieldStyle}>
-          <label htmlFor="date" style={labelStyle}>Date *</label>
-          <input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} style={inputStyle} required />
-          {errors.date && <p style={errorStyle}>{errors.date[0]}</p>}
-        </div>
+          <Field label="Date" htmlFor="date" required error={errors.date?.[0]}>
+            <TextInput id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+          </Field>
 
-        <div style={fieldStyle}>
-          <label htmlFor="category" style={labelStyle}>Category *</label>
-          <select id="category" value={category} onChange={(e) => setCategory(e.target.value as ExpenseCategory)} style={inputStyle} required>
-            {EXPENSE_CATEGORIES.map((c) => (
-              <option key={c} value={c}>{EXPENSE_CATEGORY_LABELS[c]}</option>
-            ))}
-          </select>
-          {errors.category && <p style={errorStyle}>{errors.category[0]}</p>}
-        </div>
+          <Field label="Category" htmlFor="category" required error={errors.category?.[0]}>
+            <select id="category" value={category} onChange={(e) => setCategory(e.target.value as ExpenseCategory)} className="ui-input" required>
+              {EXPENSE_CATEGORIES.map((expenseCategory) => <option key={expenseCategory} value={expenseCategory}>{EXPENSE_CATEGORY_LABELS[expenseCategory]}</option>)}
+            </select>
+          </Field>
 
-        <div style={fieldStyle}>
-          <label htmlFor="property_id" style={labelStyle}>Property *</label>
-          <select id="property_id" value={propertyId} onChange={(e) => setPropertyId(e.target.value)} style={inputStyle} required>
-            <option value="">Select property...</option>
-            {properties?.map((p) => (
-              <option key={p.id} value={p.id}>{p.name}</option>
-            ))}
-          </select>
-          {errors.property_id && <p style={errorStyle}>{errors.property_id[0]}</p>}
-        </div>
+          <Field label="Property" htmlFor="property_id" required error={errors.property_id?.[0]}>
+            <select id="property_id" value={propertyId} onChange={(e) => setPropertyId(e.target.value)} className="ui-input" required>
+              <option value="">Select property...</option>
+              {properties?.map((property) => <option key={property.id} value={property.id}>{property.name}</option>)}
+            </select>
+          </Field>
 
-        <div style={fieldStyle}>
-          <label htmlFor="service_provider_id" style={labelStyle}>Service Provider (optional)</label>
-          <select id="service_provider_id" value={serviceProviderId} onChange={(e) => setServiceProviderId(e.target.value)} style={inputStyle}>
-            <option value="">None</option>
-            {serviceProviders?.map((sp) => (
-              <option key={sp.id} value={sp.id}>{sp.name}</option>
-            ))}
-          </select>
-        </div>
+          <Field label="Service Provider" htmlFor="service_provider_id">
+            <select id="service_provider_id" value={serviceProviderId} onChange={(e) => setServiceProviderId(e.target.value)} className="ui-input">
+              <option value="">None</option>
+              {serviceProviders?.map((serviceProvider) => <option key={serviceProvider.id} value={serviceProvider.id}>{serviceProvider.name}</option>)}
+            </select>
+          </Field>
 
-        <div style={fieldStyle}>
-          <label htmlFor="description" style={labelStyle}>Description</label>
-          <textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} style={{ ...inputStyle, minHeight: '60px' }} maxLength={500} />
-          {errors.description && <p style={errorStyle}>{errors.description[0]}</p>}
-        </div>
+          <Field label="Description" htmlFor="description" error={errors.description?.[0]}>
+            <TextArea id="description" value={description} onChange={(e) => setDescription(e.target.value)} maxLength={500} />
+          </Field>
 
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button type="submit" disabled={isPending} style={submitBtnStyle}>{isPending ? 'Saving...' : isEdit ? 'Update' : 'Create'}</button>
-          <button type="button" onClick={() => navigate('/expenses')} style={cancelBtnStyle}>Cancel</button>
-        </div>
-      </form>
-    </div>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <Button type="submit" disabled={isPending} variant="primary">{isPending ? 'Saving...' : isEdit ? 'Update Expense' : 'Create Expense'}</Button>
+            <Button type="button" onClick={() => navigate('/expenses')}>Cancel</Button>
+          </div>
+        </form>
+      </ContentCard>
+    </PageLayout>
   )
 }
-
-const fieldStyle: React.CSSProperties = { marginBottom: '1rem' }
-const labelStyle: React.CSSProperties = { display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', fontWeight: 500 }
-const inputStyle: React.CSSProperties = { width: '100%', padding: '0.5rem', border: '1px solid #ccc', borderRadius: '0.375rem', fontSize: '0.875rem', boxSizing: 'border-box' }
-const errorStyle: React.CSSProperties = { color: '#dc3545', fontSize: '0.8rem', margin: '0.25rem 0 0' }
-const alertStyle: React.CSSProperties = { backgroundColor: '#f8d7da', color: '#721c24', padding: '0.75rem', borderRadius: '0.375rem', marginBottom: '1rem', fontSize: '0.875rem' }
-const submitBtnStyle: React.CSSProperties = { padding: '0.5rem 1.5rem', backgroundColor: '#1a1a2e', color: '#fff', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem' }
-const cancelBtnStyle: React.CSSProperties = { padding: '0.5rem 1.5rem', backgroundColor: '#fff', color: '#333', border: '1px solid #ccc', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem' }
