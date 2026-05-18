@@ -1,3 +1,4 @@
+# PHPStan / Larastan configuration
 includes:
     - vendor/larastan/larastan/extension.neon
 
