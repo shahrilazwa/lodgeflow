@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button, ContentCard, Field, PageHeader, PageLayout, TextInput } from '@/components/ui/Page'
 import { useCreateBooking, useBooking, useUpdateBooking } from './api'
@@ -39,12 +39,7 @@ export default function BookingFormPage() {
   const calculatedTotal = selectedUnit?.price_per_night && nights > 0
     ? (Number(selectedUnit.price_per_night) * nights).toFixed(2)
     : ''
-
-  useEffect(() => {
-    if (!isEdit && !totalManuallyEdited && calculatedTotal) {
-      setTotalAmount(calculatedTotal)
-    }
-  }, [calculatedTotal, isEdit, totalManuallyEdited])
+  const effectiveTotalAmount = !isEdit && !totalManuallyEdited && calculatedTotal ? calculatedTotal : totalAmount
 
   if (isEdit && existing && !initialized) {
     setUnitId(String(existing.unit_id))
@@ -71,9 +66,9 @@ export default function BookingFormPage() {
 
     try {
       if (isEdit) {
-        await updateMutation.mutateAsync({ check_in_date: checkInDate, check_out_date: checkOutDate, total_amount: Number(totalAmount) })
+        await updateMutation.mutateAsync({ check_in_date: checkInDate, check_out_date: checkOutDate, total_amount: Number(effectiveTotalAmount) })
       } else {
-        await createMutation.mutateAsync({ unit_id: Number(unitId), guest_id: Number(guestId), check_in_date: checkInDate, check_out_date: checkOutDate, total_amount: Number(totalAmount) })
+        await createMutation.mutateAsync({ unit_id: Number(unitId), guest_id: Number(guestId), check_in_date: checkInDate, check_out_date: checkOutDate, total_amount: Number(effectiveTotalAmount) })
       }
       navigate('/bookings')
     } catch (err) {
@@ -170,7 +165,7 @@ export default function BookingFormPage() {
           )}
 
           <Field label="Total Amount (RM)" htmlFor="total_amount" required error={errors.total_amount?.[0]}>
-            <TextInput id="total_amount" type="number" step="0.01" min="0.01" value={totalAmount} onChange={(e) => { setTotalAmount(e.target.value); setTotalManuallyEdited(true) }} required />
+            <TextInput id="total_amount" type="number" step="0.01" min="0.01" value={effectiveTotalAmount} onChange={(e) => { setTotalAmount(e.target.value); setTotalManuallyEdited(true) }} required />
           </Field>
 
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
