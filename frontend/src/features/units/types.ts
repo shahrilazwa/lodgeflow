@@ -1,4 +1,4 @@
-export const UNIT_TYPES = ['room', 'suite', 'dormitory_bed', 'entire_unit'] as const
+export const UNIT_TYPES = ['room', 'suite', 'dormitory_bed', 'entire_unit', 'whole_house'] as const
 export type UnitType = (typeof UNIT_TYPES)[number]
 
 export const UNIT_TYPE_LABELS: Record<UnitType, string> = {
@@ -6,6 +6,7 @@ export const UNIT_TYPE_LABELS: Record<UnitType, string> = {
   suite: 'Suite',
   dormitory_bed: 'Dormitory Bed',
   entire_unit: 'Entire Unit',
+  whole_house: 'Whole House',
 }
 
 export interface Unit {
@@ -15,6 +16,7 @@ export interface Unit {
   name: string
   type: UnitType
   description: string | null
+  price_per_night: string | null
   is_active: boolean
   created_at: string
   updated_at: string
@@ -24,10 +26,12 @@ export interface CreateUnitData {
   name: string
   type: UnitType
   description?: string
+  price_per_night?: number | null
 }
 
 export interface UpdateUnitData {
   name?: string
   type?: UnitType
   description?: string | null
+  price_per_night?: number | null
 }
