@@ -1,8 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
-import type { CreatePaymentData, Payment } from './types'
+import type { CreatePaymentData, Payment, PaymentFilters } from './types'
 
 const PAYMENTS_KEY = ['payments']
+
+export function usePayments(filters: PaymentFilters = {}) {
+  return useQuery({
+    queryKey: [...PAYMENTS_KEY, 'ledger', filters],
+    queryFn: async () => {
+      const { data } = await api.get<{ data: Payment[] }>('/payments', { params: filters })
+      return data.data
+    },
+  })
+}
 
 export function usePaymentsForBooking(bookingId: number) {
   return useQuery({
@@ -24,6 +34,7 @@ export function useCreatePayment(bookingId: number) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [...PAYMENTS_KEY, 'booking', bookingId] })
+      queryClient.invalidateQueries({ queryKey: [...PAYMENTS_KEY, 'ledger'] })
       queryClient.invalidateQueries({ queryKey: ['bookings', bookingId] })
       queryClient.invalidateQueries({ queryKey: ['bookings'] })
     },
@@ -38,6 +49,7 @@ export function useDeletePayment(bookingId: number) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [...PAYMENTS_KEY, 'booking', bookingId] })
+      queryClient.invalidateQueries({ queryKey: [...PAYMENTS_KEY, 'ledger'] })
       queryClient.invalidateQueries({ queryKey: ['bookings', bookingId] })
       queryClient.invalidateQueries({ queryKey: ['bookings'] })
     },
