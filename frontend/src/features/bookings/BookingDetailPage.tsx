@@ -70,8 +70,8 @@ export default function BookingDetailPage() {
         backLabel="Back to Bookings"
         meta={
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-            <StatusBadge tone={bookingStatusTone(booking.status)}>{BOOKING_STATUS_LABELS[booking.status]}</StatusBadge>
-            <StatusBadge tone={paymentStatusTone(booking.payment_status)}>{PAYMENT_STATUS_LABELS[booking.payment_status]}</StatusBadge>
+            <StatusBadge tone={bookingStatusTone(booking.status)}>{bookingStatusLabel(booking.status)}</StatusBadge>
+            <StatusBadge tone={paymentStatusTone(booking.payment_status)}>{paymentStatusLabel(booking.payment_status)}</StatusBadge>
           </div>
         }
       />
@@ -153,6 +153,19 @@ function bookingStatusTone(status: string): Tone {
 function paymentStatusTone(status: string): Tone {
   const tones: Record<string, Tone> = { unpaid: 'danger', partial: 'warning', paid: 'success', overpaid: 'info', refunded: 'neutral' }
   return tones[status] ?? 'neutral'
+}
+
+function bookingStatusLabel(status: string): string {
+  return BOOKING_STATUS_LABELS[status as keyof typeof BOOKING_STATUS_LABELS] ?? humanizeStatus(status)
+}
+
+function paymentStatusLabel(status: string): string {
+  return PAYMENT_STATUS_LABELS[status as keyof typeof PAYMENT_STATUS_LABELS] ?? humanizeStatus(status)
+}
+
+function humanizeStatus(status: string): string {
+  if (!status) return 'Unknown Status'
+  return status.split('_').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
 }
 
 function formatDate(value: string): string {
