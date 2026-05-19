@@ -29,6 +29,8 @@ class StoreUnitRequest extends FormRequest
             'type' => ['required', 'string', Rule::in(Unit::TYPES)],
             'description' => ['nullable', 'string', 'max:500'],
             'price_per_night' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
+            'facility_ids' => ['nullable', 'array'],
+            'facility_ids.*' => ['integer', 'exists:facilities,id'],
         ];
     }
 
