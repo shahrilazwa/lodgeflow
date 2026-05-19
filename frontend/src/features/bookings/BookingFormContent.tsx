@@ -96,7 +96,7 @@ export default function BookingFormContent({ existing }: BookingFormContentProps
       <PageHeader
         eyebrow="Booking"
         title={isEdit ? 'Edit Booking' : 'Create Booking'}
-        description={isEdit ? 'Update stay dates, booking amount and customer policy.' : 'Create a booking by selecting a guest, property, unit and stay dates.'}
+        description={isEdit ? 'Update stay dates, booking amount and customer-facing policy.' : 'Create a booking by selecting a guest, property, unit and stay dates.'}
         backTo="/bookings"
         backLabel="Back to Bookings"
       />
@@ -198,15 +198,15 @@ function CustomerPolicyCheckboxes({ allowCustomerCancellation, allowCustomerModi
   return (
     <div style={{ marginBottom: '18px', display: 'grid', gap: '10px' }}>
       <p style={{ margin: 0, color: '#71717a', fontSize: '0.78rem', lineHeight: 1.5 }}>
-        These settings define what the customer may do later from a customer-facing confirmation page or link. Staff can still manage the booking from the dashboard.
+        These options apply only to future customer-facing confirmation links. They do not block staff actions in this dashboard.
       </p>
       <label style={checkboxLabelStyle}>
         <input type="checkbox" checked={allowCustomerCancellation} onChange={(e) => onCancellationChange(e.target.checked)} />
-        <span>Allow customer cancellation</span>
+        <span>Allow customer cancellation from customer link</span>
       </label>
       <label style={checkboxLabelStyle}>
         <input type="checkbox" checked={allowCustomerModification} onChange={(e) => onModificationChange(e.target.checked)} />
-        <span>Allow customer modification</span>
+        <span>Allow customer modification request from customer link</span>
       </label>
     </div>
   )
