@@ -109,7 +109,7 @@ class BookingService
             'check_in_date' => $data['check_in_date'],
             'check_out_date' => $data['check_out_date'],
             'total_amount' => $data['total_amount'],
-            'status' => Booking::STATUS_CONFIRMED,
+            'status' => Booking::STATUS_PENDING_CUSTOMER_CONFIRMATION,
             'payment_status' => 'unpaid',
             'net_paid_amount' => 0.00,
         ]);
@@ -129,13 +129,13 @@ class BookingService
     }
 
     /**
-     * Update a booking (only when status is confirmed).
+     * Update a booking (only when pending customer confirmation or confirmed).
      */
     public function update(Booking $booking, array $data, int $ownerId): Booking|JsonResponse
     {
-        if ($booking->status !== Booking::STATUS_CONFIRMED) {
+        if (! in_array($booking->status, [Booking::STATUS_PENDING_CUSTOMER_CONFIRMATION, Booking::STATUS_CONFIRMED], true)) {
             return response()->json([
-                'message' => 'Booking can only be updated when status is confirmed.',
+                'message' => 'Booking can only be updated when pending customer confirmation or confirmed.',
                 'current_status' => $booking->status,
             ], 422);
         }
@@ -178,6 +178,23 @@ class BookingService
         if (! empty($updateData)) {
             $booking->update($updateData);
         }
+
+        return $booking->fresh()->load(['unit', 'guest']);
+    }
+
+    /**
+     * Confirm a booking after customer confirmation.
+     */
+    public function confirm(Booking $booking): Booking|JsonResponse
+    {
+        if ($booking->status !== Booking::STATUS_PENDING_CUSTOMER_CONFIRMATION) {
+            return response()->json([
+                'message' => 'Booking can only be confirmed from pending customer confirmation status.',
+                'current_status' => $booking->status,
+            ], 422);
+        }
+
+        $booking->update(['status' => Booking::STATUS_CONFIRMED]);
 
         return $booking->fresh()->load(['unit', 'guest']);
     }
@@ -253,13 +270,13 @@ class BookingService
     }
 
     /**
-     * Cancel a booking (confirmed or checked_in → cancelled).
+     * Cancel a booking (pending customer confirmation, confirmed or checked_in → cancelled).
      */
     public function cancel(Booking $booking): Booking|JsonResponse
     {
-        if (! in_array($booking->status, [Booking::STATUS_CONFIRMED, Booking::STATUS_CHECKED_IN])) {
+        if (! in_array($booking->status, [Booking::STATUS_PENDING_CUSTOMER_CONFIRMATION, Booking::STATUS_CONFIRMED, Booking::STATUS_CHECKED_IN], true)) {
             return response()->json([
-                'message' => 'Booking can only be cancelled from confirmed or checked_in status.',
+                'message' => 'Booking can only be cancelled from pending customer confirmation, confirmed or checked_in status.',
                 'current_status' => $booking->status,
             ], 422);
         }
@@ -276,7 +293,7 @@ class BookingService
     private function findOverlap(int $unitId, string $checkIn, string $checkOut, ?int $excludeId): ?Booking
     {
         $query = Booking::where('unit_id', $unitId)
-            ->whereIn('status', [Booking::STATUS_CONFIRMED, Booking::STATUS_CHECKED_IN])
+            ->whereIn('status', [Booking::STATUS_PENDING_CUSTOMER_CONFIRMATION, Booking::STATUS_CONFIRMED, Booking::STATUS_CHECKED_IN])
             ->where('check_in_date', '<', $checkOut)
             ->where('check_out_date', '>', $checkIn);
 

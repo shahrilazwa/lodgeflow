@@ -63,7 +63,7 @@ export default function BookingsPage() {
 type Tone = 'success' | 'danger' | 'warning' | 'neutral' | 'info'
 
 function bookingStatusTone(status: string): Tone {
-  const tones: Record<string, Tone> = { confirmed: 'info', checked_in: 'success', checked_out: 'neutral', cancelled: 'danger' }
+  const tones: Record<string, Tone> = { pending_customer_confirmation: 'warning', confirmed: 'info', checked_in: 'success', checked_out: 'neutral', cancelled: 'danger' }
   return tones[status] ?? 'neutral'
 }
 

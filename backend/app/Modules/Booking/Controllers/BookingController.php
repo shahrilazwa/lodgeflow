@@ -65,7 +65,7 @@ class BookingController extends Controller
     }
 
     /**
-     * Update a booking (only when confirmed).
+     * Update a booking (only when pending customer confirmation or confirmed).
      */
     public function update(UpdateBookingRequest $request, int $id): JsonResponse
     {
@@ -76,6 +76,26 @@ class BookingController extends Controller
         }
 
         $result = $this->bookingService->update($booking, $request->validated(), $request->user()->id);
+
+        if ($result instanceof JsonResponse) {
+            return $result;
+        }
+
+        return response()->json(['data' => $result]);
+    }
+
+    /**
+     * Confirm a booking after customer confirmation.
+     */
+    public function confirm(Request $request, int $id): JsonResponse
+    {
+        $booking = $this->bookingService->findForOwner($id, $request->user()->id);
+
+        if (! $booking) {
+            return response()->json(['message' => 'Booking not found.'], 404);
+        }
+
+        $result = $this->bookingService->confirm($booking);
 
         if ($result instanceof JsonResponse) {
             return $result;

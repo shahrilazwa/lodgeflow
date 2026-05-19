@@ -56,6 +56,19 @@ export function useUpdateBooking(id: number) {
   })
 }
 
+export function useConfirmBooking() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const { data } = await api.patch<{ data: Booking }>(`/bookings/${id}/confirm`)
+      return data.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: BOOKINGS_KEY })
+    },
+  })
+}
+
 export function useCheckInBooking() {
   const queryClient = useQueryClient()
   return useMutation({

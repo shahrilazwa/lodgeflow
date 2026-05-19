@@ -29,19 +29,32 @@ export default function BookingFormContent({ existing }: BookingFormContentProps
 
   const [unitId, setUnitId] = useState(existing ? String(existing.unit_id) : '')
   const [guestId, setGuestId] = useState(existing ? String(existing.guest_id) : '')
-  const [checkInDate, setCheckInDate] = useState(existing?.check_in_date ?? '')
-  const [checkOutDate, setCheckOutDate] = useState(existing?.check_out_date ?? '')
+  const [checkInDate, setCheckInDate] = useState(normalizeDateInput(existing?.check_in_date))
+  const [checkOutDate, setCheckOutDate] = useState(normalizeDateInput(existing?.check_out_date))
   const [totalAmount, setTotalAmount] = useState(existing?.total_amount ?? '')
   const [totalManuallyEdited, setTotalManuallyEdited] = useState(false)
   const [errors, setErrors] = useState<Record<string, string[]>>({})
   const [generalError, setGeneralError] = useState('')
 
   const selectedUnit = useMemo(() => units?.find((unit) => String(unit.id) === unitId), [units, unitId])
+  const pricePerNight = selectedUnit?.price_per_night ?? existing?.unit?.price_per_night ?? null
+  const minimumCheckOutDate = getNextDateString(checkInDate)
   const nights = calculateNights(checkInDate, checkOutDate)
-  const calculatedTotal = selectedUnit?.price_per_night && nights > 0
-    ? (Number(selectedUnit.price_per_night) * nights).toFixed(2)
+  const invalidDateRange = Boolean(checkInDate && checkOutDate && nights <= 0)
+  const calculatedTotal = pricePerNight && nights > 0
+    ? (Number(pricePerNight) * nights).toFixed(2)
     : ''
-  const effectiveTotalAmount = !isEdit && !totalManuallyEdited && calculatedTotal ? calculatedTotal : totalAmount
+  const effectiveTotalAmount = !totalManuallyEdited && calculatedTotal ? calculatedTotal : totalAmount
+
+  function handleCheckInDateChange(value: string) {
+    setCheckInDate(value)
+    setTotalManuallyEdited(false)
+
+    const nextDate = getNextDateString(value)
+    if (nextDate && (!checkOutDate || checkOutDate <= value)) {
+      setCheckOutDate(nextDate)
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -135,16 +148,16 @@ export default function BookingFormContent({ existing }: BookingFormContentProps
           )}
 
           <Field label="Check-in Date" htmlFor="check_in_date" required error={errors.check_in_date?.[0]}>
-            <TextInput id="check_in_date" type="date" value={checkInDate} onChange={(e) => { setCheckInDate(e.target.value); setTotalManuallyEdited(false) }} required />
+            <TextInput id="check_in_date" type="date" value={checkInDate} onChange={(e) => handleCheckInDateChange(e.target.value)} required />
           </Field>
 
-          <Field label="Check-out Date" htmlFor="check_out_date" required error={errors.check_out_date?.[0]}>
-            <TextInput id="check_out_date" type="date" value={checkOutDate} onChange={(e) => { setCheckOutDate(e.target.value); setTotalManuallyEdited(false) }} required />
+          <Field label="Check-out Date" htmlFor="check_out_date" required error={errors.check_out_date?.[0] || (invalidDateRange ? 'Check-out date must be after check-in date.' : undefined)}>
+            <TextInput id="check_out_date" type="date" value={checkOutDate} min={minimumCheckOutDate} onChange={(e) => { setCheckOutDate(e.target.value); setTotalManuallyEdited(false) }} required />
           </Field>
 
-          {!isEdit && selectedUnit?.price_per_night && nights > 0 && (
+          {pricePerNight && nights > 0 && (
             <div style={{ marginBottom: '16px', padding: '10px 12px', borderRadius: '10px', background: '#eff6ff', color: '#2563eb', fontSize: '0.84rem', fontWeight: 700 }}>
-              Auto-calculated: {nights} night{nights === 1 ? '' : 's'} at RM {Number(selectedUnit.price_per_night).toFixed(2)} per night = RM {calculatedTotal}
+              Auto-calculated: {nights} night{nights === 1 ? '' : 's'} at RM {Number(pricePerNight).toFixed(2)} per night = RM {calculatedTotal}
             </div>
           )}
 
@@ -153,7 +166,7 @@ export default function BookingFormContent({ existing }: BookingFormContentProps
           </Field>
 
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            <Button type="submit" disabled={isPending} variant="primary">{isPending ? 'Saving...' : isEdit ? 'Update Booking' : 'Create Booking'}</Button>
+            <Button type="submit" disabled={isPending || invalidDateRange} variant="primary">{isPending ? 'Saving...' : isEdit ? 'Update Booking' : 'Create Booking'}</Button>
             <Button type="button" onClick={() => navigate('/bookings')}>Cancel</Button>
           </div>
         </form>
@@ -163,13 +176,33 @@ export default function BookingFormContent({ existing }: BookingFormContentProps
 }
 
 function calculateNights(checkInDate: string, checkOutDate: string): number {
-  if (!checkInDate || !checkOutDate) return 0
+  const normalizedCheckIn = normalizeDateInput(checkInDate)
+  const normalizedCheckOut = normalizeDateInput(checkOutDate)
+  if (!normalizedCheckIn || !normalizedCheckOut) return 0
 
-  const checkIn = new Date(`${checkInDate}T00:00:00`)
-  const checkOut = new Date(`${checkOutDate}T00:00:00`)
+  const checkIn = new Date(`${normalizedCheckIn}T00:00:00`)
+  const checkOut = new Date(`${normalizedCheckOut}T00:00:00`)
   const diffMs = checkOut.getTime() - checkIn.getTime()
 
   if (diffMs <= 0) return 0
 
   return Math.round(diffMs / 86400000)
+}
+
+function getNextDateString(dateString: string): string | undefined {
+  const normalizedDate = normalizeDateInput(dateString)
+  if (!normalizedDate) return undefined
+
+  const date = new Date(`${normalizedDate}T00:00:00`)
+  if (Number.isNaN(date.getTime())) return undefined
+
+  date.setDate(date.getDate() + 1)
+
+  return date.toISOString().slice(0, 10)
+}
+
+function normalizeDateInput(dateString?: string | null): string {
+  if (!dateString) return ''
+
+  return dateString.slice(0, 10)
 }

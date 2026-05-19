@@ -17,6 +17,8 @@ class Booking extends Model
     /** @use HasFactory<BookingFactory> */
     use HasFactory;
 
+    public const STATUS_PENDING_CUSTOMER_CONFIRMATION = 'pending_customer_confirmation';
+
     public const STATUS_CONFIRMED = 'confirmed';
 
     public const STATUS_CHECKED_IN = 'checked_in';
@@ -26,6 +28,7 @@ class Booking extends Model
     public const STATUS_CANCELLED = 'cancelled';
 
     public const STATUSES = [
+        self::STATUS_PENDING_CUSTOMER_CONFIRMATION,
         self::STATUS_CONFIRMED,
         self::STATUS_CHECKED_IN,
         self::STATUS_CHECKED_OUT,

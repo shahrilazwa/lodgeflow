@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { Button, ButtonLink, ContentCard, PageHeader, PageLayout, StatusBadge } from '@/components/ui/Page'
-import { useBooking, useCheckInBooking, useCheckOutBooking, useCancelBooking } from './api'
+import { useBooking, useConfirmBooking, useCheckInBooking, useCheckOutBooking, useCancelBooking } from './api'
 import { BOOKING_STATUS_LABELS, PAYMENT_STATUS_LABELS } from './types'
 import PaymentSection from '@/features/payments/PaymentSection'
 
@@ -10,6 +10,7 @@ export default function BookingDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { data: booking, isLoading, error } = useBooking(Number(id))
+  const confirmBooking = useConfirmBooking()
   const checkIn = useCheckInBooking()
   const checkOut = useCheckOutBooking()
   const cancel = useCancelBooking()
@@ -35,7 +36,12 @@ export default function BookingDetailPage() {
   const bookingId = booking.id
   const outstanding = Math.max(0, Number(booking.total_amount) - Number(booking.net_paid_amount))
   const overpaid = Math.max(0, Number(booking.net_paid_amount) - Number(booking.total_amount))
-  const transitionError = getTransitionError(checkIn.error || checkOut.error || cancel.error)
+  const transitionError = getTransitionError(confirmBooking.error || checkIn.error || checkOut.error || cancel.error)
+
+  async function handleConfirm() {
+    await confirmBooking.mutateAsync(bookingId)
+    navigate(`/bookings/${bookingId}`)
+  }
 
   async function handleCheckIn() {
     await checkIn.mutateAsync(bookingId)
@@ -48,7 +54,7 @@ export default function BookingDetailPage() {
   }
 
   async function handleCancel() {
-    if (confirm('Are you sure you want to cancel this booking?')) {
+    if (window.confirm('Are you sure you want to cancel this booking?')) {
       await cancel.mutateAsync(bookingId)
       navigate(`/bookings/${bookingId}`)
     }
@@ -64,11 +70,20 @@ export default function BookingDetailPage() {
         backLabel="Back to Bookings"
         meta={
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-            <StatusBadge tone={bookingStatusTone(booking.status)}>{BOOKING_STATUS_LABELS[booking.status]}</StatusBadge>
-            <StatusBadge tone={paymentStatusTone(booking.payment_status)}>{PAYMENT_STATUS_LABELS[booking.payment_status]}</StatusBadge>
+            <StatusBadge tone={bookingStatusTone(booking.status)}>{bookingStatusLabel(booking.status)}</StatusBadge>
+            <StatusBadge tone={paymentStatusTone(booking.payment_status)}>{paymentStatusLabel(booking.payment_status)}</StatusBadge>
           </div>
         }
       />
+
+      {booking.status === 'pending_customer_confirmation' && (
+        <ContentCard>
+          <p style={{ margin: '0 0 6px', color: '#b45309', fontSize: '0.88rem', fontWeight: 800 }}>Waiting for customer confirmation</p>
+          <p style={{ margin: 0, color: '#71717a', fontSize: '0.86rem', lineHeight: 1.6 }}>
+            Confirm this booking only after the customer has agreed to the stay dates, unit and amount. Check-in is disabled until the booking is confirmed.
+          </p>
+        </ContentCard>
+      )}
 
       <ContentCard>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '16px' }}>
@@ -85,6 +100,13 @@ export default function BookingDetailPage() {
       </ContentCard>
 
       <div style={{ marginTop: '14px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        {booking.status === 'pending_customer_confirmation' && (
+          <>
+            <Button type="button" variant="primary" onClick={handleConfirm} disabled={confirmBooking.isPending}>{confirmBooking.isPending ? 'Confirming...' : 'Confirm Booking'}</Button>
+            <ButtonLink to={`/bookings/${bookingId}/edit`}>Edit</ButtonLink>
+            <Button type="button" variant="danger" onClick={handleCancel} disabled={cancel.isPending}>{cancel.isPending ? 'Cancelling...' : 'Cancel Booking'}</Button>
+          </>
+        )}
         {booking.status === 'confirmed' && (
           <>
             <Button type="button" variant="primary" onClick={handleCheckIn} disabled={checkIn.isPending}>{checkIn.isPending ? 'Processing...' : 'Check In'}</Button>
@@ -124,13 +146,26 @@ function Notice({ tone, label, value }: { tone: 'warning' | 'info'; label: strin
 }
 
 function bookingStatusTone(status: string): Tone {
-  const tones: Record<string, Tone> = { confirmed: 'info', checked_in: 'success', checked_out: 'neutral', cancelled: 'danger' }
+  const tones: Record<string, Tone> = { pending_customer_confirmation: 'warning', confirmed: 'info', checked_in: 'success', checked_out: 'neutral', cancelled: 'danger' }
   return tones[status] ?? 'neutral'
 }
 
 function paymentStatusTone(status: string): Tone {
   const tones: Record<string, Tone> = { unpaid: 'danger', partial: 'warning', paid: 'success', overpaid: 'info', refunded: 'neutral' }
   return tones[status] ?? 'neutral'
+}
+
+function bookingStatusLabel(status: string): string {
+  return BOOKING_STATUS_LABELS[status as keyof typeof BOOKING_STATUS_LABELS] ?? humanizeStatus(status)
+}
+
+function paymentStatusLabel(status: string): string {
+  return PAYMENT_STATUS_LABELS[status as keyof typeof PAYMENT_STATUS_LABELS] ?? humanizeStatus(status)
+}
+
+function humanizeStatus(status: string): string {
+  if (!status) return 'Unknown Status'
+  return status.split('_').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
 }
 
 function formatDate(value: string): string {
