@@ -112,6 +112,8 @@ class BookingService
             'status' => Booking::STATUS_PENDING_CUSTOMER_CONFIRMATION,
             'payment_status' => 'unpaid',
             'net_paid_amount' => 0.00,
+            'allow_customer_cancellation' => $data['allow_customer_cancellation'] ?? false,
+            'allow_customer_modification' => $data['allow_customer_modification'] ?? false,
         ]);
 
         return $booking->fresh()->load(['unit', 'guest']);
@@ -173,6 +175,12 @@ class BookingService
         }
         if (isset($data['total_amount'])) {
             $updateData['total_amount'] = $data['total_amount'];
+        }
+        if (array_key_exists('allow_customer_cancellation', $data)) {
+            $updateData['allow_customer_cancellation'] = $data['allow_customer_cancellation'];
+        }
+        if (array_key_exists('allow_customer_modification', $data)) {
+            $updateData['allow_customer_modification'] = $data['allow_customer_modification'];
         }
 
         if (! empty($updateData)) {
