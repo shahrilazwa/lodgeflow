@@ -98,16 +98,29 @@ return new class extends Migration
         ];
 
         foreach ($facilities as $facility) {
-            DB::table('facilities')->updateOrInsert(
-                ['name' => $facility['name']],
-                [
-                    'icon' => $facility['icon'],
-                    'category' => $facility['category'],
-                    'scope' => $facility['scope'],
-                    'updated_at' => $now,
-                    'created_at' => DB::raw('COALESCE(created_at, CURRENT_TIMESTAMP)'),
-                ]
-            );
+            $existing = DB::table('facilities')->where('name', $facility['name'])->first();
+
+            if ($existing) {
+                DB::table('facilities')
+                    ->where('name', $facility['name'])
+                    ->update([
+                        'icon' => $facility['icon'],
+                        'category' => $facility['category'],
+                        'scope' => $facility['scope'],
+                        'updated_at' => $now,
+                    ]);
+
+                continue;
+            }
+
+            DB::table('facilities')->insert([
+                'name' => $facility['name'],
+                'icon' => $facility['icon'],
+                'category' => $facility['category'],
+                'scope' => $facility['scope'],
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
         }
     }
 
