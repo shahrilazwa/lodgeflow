@@ -31,7 +31,7 @@ class PropertyPhotoApiTest extends TestCase
     {
         $response = $this->actingAs($this->owner, 'sanctum')
             ->postJson("/api/v1/properties/{$this->property->id}/photos", [
-                'photo' => UploadedFile::fake()->image('front.jpg'),
+                'photo' => $this->fakePng('front.png'),
                 'caption' => 'Front view',
             ]);
 
@@ -49,13 +49,13 @@ class PropertyPhotoApiTest extends TestCase
         PropertyPhoto::create([
             'owner_id' => $this->owner->id,
             'property_id' => $this->property->id,
-            'path' => 'properties/1/photos/cover.jpg',
+            'path' => 'properties/1/photos/cover.png',
             'is_cover' => true,
         ]);
 
         $response = $this->actingAs($this->owner, 'sanctum')
             ->postJson("/api/v1/properties/{$this->property->id}/photos", [
-                'photo' => UploadedFile::fake()->image('kitchen.jpg'),
+                'photo' => $this->fakePng('kitchen.png'),
             ]);
 
         $response->assertStatus(201)
@@ -67,7 +67,7 @@ class PropertyPhotoApiTest extends TestCase
         PropertyPhoto::create([
             'owner_id' => $this->owner->id,
             'property_id' => $this->property->id,
-            'path' => 'properties/1/photos/front.jpg',
+            'path' => 'properties/1/photos/front.png',
             'is_cover' => true,
         ]);
 
@@ -84,14 +84,14 @@ class PropertyPhotoApiTest extends TestCase
         $cover = PropertyPhoto::create([
             'owner_id' => $this->owner->id,
             'property_id' => $this->property->id,
-            'path' => 'properties/1/photos/front.jpg',
+            'path' => 'properties/1/photos/front.png',
             'is_cover' => true,
         ]);
 
         $newCover = PropertyPhoto::create([
             'owner_id' => $this->owner->id,
             'property_id' => $this->property->id,
-            'path' => 'properties/1/photos/room.jpg',
+            'path' => 'properties/1/photos/room.png',
             'is_cover' => false,
         ]);
 
@@ -108,12 +108,12 @@ class PropertyPhotoApiTest extends TestCase
 
     public function test_owner_can_delete_property_photo(): void
     {
-        Storage::disk('public')->put('properties/1/photos/front.jpg', 'fake-image');
+        Storage::disk('public')->put('properties/1/photos/front.png', 'fake-image');
 
         $photo = PropertyPhoto::create([
             'owner_id' => $this->owner->id,
             'property_id' => $this->property->id,
-            'path' => 'properties/1/photos/front.jpg',
+            'path' => 'properties/1/photos/front.png',
             'is_cover' => true,
         ]);
 
@@ -124,7 +124,7 @@ class PropertyPhotoApiTest extends TestCase
             ->assertJsonPath('message', 'Property photo deleted.');
 
         $this->assertDatabaseMissing('property_photos', ['id' => $photo->id]);
-        Storage::disk('public')->assertMissing('properties/1/photos/front.jpg');
+        Storage::disk('public')->assertMissing('properties/1/photos/front.png');
     }
 
     public function test_owner_cannot_manage_other_owners_property_photo(): void
@@ -134,7 +134,7 @@ class PropertyPhotoApiTest extends TestCase
         $photo = PropertyPhoto::create([
             'owner_id' => $otherOwner->id,
             'property_id' => $otherProperty->id,
-            'path' => 'properties/2/photos/front.jpg',
+            'path' => 'properties/2/photos/front.png',
         ]);
 
         $this->actingAs($this->owner, 'sanctum')
@@ -151,5 +151,14 @@ class PropertyPhotoApiTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['photo']);
+    }
+
+    private function fakePng(string $name): UploadedFile
+    {
+        $png = base64_decode(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+        );
+
+        return UploadedFile::fake()->createWithContent($name, $png ?: '');
     }
 }
