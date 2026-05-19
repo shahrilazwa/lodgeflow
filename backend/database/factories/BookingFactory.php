@@ -30,12 +30,24 @@ class BookingFactory extends Factory
             'status' => Booking::STATUS_CONFIRMED,
             'payment_status' => 'unpaid',
             'net_paid_amount' => 0.00,
+            'allow_customer_cancellation' => false,
+            'allow_customer_modification' => false,
         ];
     }
 
     public function pendingCustomerConfirmation(): static
     {
         return $this->state(fn () => ['status' => Booking::STATUS_PENDING_CUSTOMER_CONFIRMATION]);
+    }
+
+    public function allowingCustomerCancellation(): static
+    {
+        return $this->state(fn () => ['allow_customer_cancellation' => true]);
+    }
+
+    public function allowingCustomerModification(): static
+    {
+        return $this->state(fn () => ['allow_customer_modification' => true]);
     }
 
     public function checkedIn(): static

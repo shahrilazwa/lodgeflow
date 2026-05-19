@@ -6,6 +6,7 @@ import type { BookingQueueItem } from './api'
 export default function BookingQueueCard() {
   const { data, isLoading, error } = useDashboardBookingQueue()
   const queueItems = data ? [
+    ...data.awaiting_confirmation,
     ...data.upcoming_check_ins,
     ...data.upcoming_check_outs,
     ...data.currently_checked_in,
@@ -22,7 +23,7 @@ export default function BookingQueueCard() {
         <div className="dashboard-booking-queue">
           <div className="dashboard-queue-header">
             <span>Front desk queue</span>
-            <strong>Next 24 hours</strong>
+            <strong>Needs attention</strong>
           </div>
 
           <ul className="dashboard-queue-list">
@@ -53,6 +54,7 @@ function BookingQueueRow({ item }: { item: BookingQueueItem }) {
 
 function queueTone(type: string): string {
   const tones: Record<string, string> = {
+    awaiting_confirmation: 'is-orange',
     check_in: 'is-blue',
     check_out: 'is-neutral',
     in_house: 'is-green',

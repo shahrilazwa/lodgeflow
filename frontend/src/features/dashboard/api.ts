@@ -41,6 +41,7 @@ export interface BookingQueueItem {
 export interface BookingQueue {
   date: string
   window: string
+  awaiting_confirmation: BookingQueueItem[]
   upcoming_check_ins: BookingQueueItem[]
   upcoming_check_outs: BookingQueueItem[]
   currently_checked_in: BookingQueueItem[]

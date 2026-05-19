@@ -75,6 +75,17 @@ class DashboardService
         $today = Carbon::today();
         $tomorrow = Carbon::today()->addDay();
 
+        $awaitingConfirmation = Booking::where('owner_id', $ownerId)
+            ->where('status', Booking::STATUS_PENDING_CUSTOMER_CONFIRMATION)
+            ->whereDate('check_in_date', '>=', $today->toDateString())
+            ->with(['guest', 'unit'])
+            ->orderBy('check_in_date')
+            ->limit(8)
+            ->get()
+            ->map(fn (Booking $booking) => $this->formatBookingQueueItem($booking, 'awaiting_confirmation', 'Awaiting confirmation'))
+            ->values()
+            ->all();
+
         $upcomingCheckIns = Booking::where('owner_id', $ownerId)
             ->where('status', Booking::STATUS_CONFIRMED)
             ->whereDate('check_in_date', '>=', $today->toDateString())
@@ -112,7 +123,7 @@ class DashboardService
             ->all();
 
         $paymentAttention = Booking::where('owner_id', $ownerId)
-            ->whereIn('status', [Booking::STATUS_CONFIRMED, Booking::STATUS_CHECKED_IN])
+            ->whereIn('status', [Booking::STATUS_PENDING_CUSTOMER_CONFIRMATION, Booking::STATUS_CONFIRMED, Booking::STATUS_CHECKED_IN])
             ->whereIn('payment_status', ['unpaid', 'partial'])
             ->with(['guest', 'unit'])
             ->orderBy('check_in_date')
@@ -125,6 +136,7 @@ class DashboardService
         return [
             'date' => $today->toDateString(),
             'window' => 'today_and_tomorrow',
+            'awaiting_confirmation' => $awaitingConfirmation,
             'upcoming_check_ins' => $upcomingCheckIns,
             'upcoming_check_outs' => $upcomingCheckOuts,
             'currently_checked_in' => $currentlyCheckedIn,

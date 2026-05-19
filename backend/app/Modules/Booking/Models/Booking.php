@@ -47,6 +47,8 @@ class Booking extends Model
         'status',
         'payment_status',
         'net_paid_amount',
+        'allow_customer_cancellation',
+        'allow_customer_modification',
     ];
 
     protected function casts(): array
@@ -56,6 +58,8 @@ class Booking extends Model
             'check_out_date' => 'date',
             'total_amount' => 'decimal:2',
             'net_paid_amount' => 'decimal:2',
+            'allow_customer_cancellation' => 'boolean',
+            'allow_customer_modification' => 'boolean',
         ];
     }
 
