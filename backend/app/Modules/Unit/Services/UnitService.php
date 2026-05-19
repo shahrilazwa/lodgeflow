@@ -81,11 +81,7 @@ class UnitService
         return DB::transaction(function () use ($unit, $data): Unit {
             $bedData = array_key_exists('beds', $data)
                 ? $this->normalizeBeds($data['beds'] ?? [])
-                : $unit->beds->map(fn (UnitBed $bed): array => [
-                    'bed_type' => $bed->bed_type,
-                    'quantity' => $bed->quantity,
-                    'capacity_per_bed' => $bed->capacity_per_bed,
-                ])->all();
+                : $this->existingBedsToArray($unit);
 
             $occupancy = $this->resolveOccupancy($data, $bedData, $unit);
 
@@ -147,6 +143,28 @@ class UnitService
     }
 
     /**
+     * @return array<int, array{bed_type: string, quantity: int, capacity_per_bed: int}>
+     */
+    private function existingBedsToArray(Unit $unit): array
+    {
+        $beds = [];
+
+        foreach ($unit->beds as $bed) {
+            if (! $bed instanceof UnitBed) {
+                continue;
+            }
+
+            $beds[] = [
+                'bed_type' => $bed->bed_type,
+                'quantity' => $bed->quantity,
+                'capacity_per_bed' => $bed->capacity_per_bed,
+            ];
+        }
+
+        return $beds;
+    }
+
+    /**
      * @param  array<int, array{bed_type: string, quantity: int, capacity_per_bed: int}>  $beds
      */
     private function syncBeds(Unit $unit, array $beds): void
@@ -165,7 +183,7 @@ class UnitService
      */
     private function resolveOccupancy(array $data, array $beds, ?Unit $existing = null): array
     {
-        $source = $data['occupancy_source'] ?? $existing?->occupancy_source ?? Unit::OCCUPANCY_SOURCE_CALCULATED;
+        $source = $data['occupancy_source'] ?? $existing->occupancy_source ?? Unit::OCCUPANCY_SOURCE_CALCULATED;
 
         if ($source === Unit::OCCUPANCY_SOURCE_MANUAL) {
             return [
