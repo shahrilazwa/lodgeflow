@@ -37,13 +37,14 @@ export default function BookingFormContent({ existing }: BookingFormContentProps
   const [generalError, setGeneralError] = useState('')
 
   const selectedUnit = useMemo(() => units?.find((unit) => String(unit.id) === unitId), [units, unitId])
+  const pricePerNight = selectedUnit?.price_per_night ?? existing?.unit?.price_per_night ?? null
   const minimumCheckOutDate = getNextDateString(checkInDate)
   const nights = calculateNights(checkInDate, checkOutDate)
   const invalidDateRange = Boolean(checkInDate && checkOutDate && nights <= 0)
-  const calculatedTotal = selectedUnit?.price_per_night && nights > 0
-    ? (Number(selectedUnit.price_per_night) * nights).toFixed(2)
+  const calculatedTotal = pricePerNight && nights > 0
+    ? (Number(pricePerNight) * nights).toFixed(2)
     : ''
-  const effectiveTotalAmount = !isEdit && !totalManuallyEdited && calculatedTotal ? calculatedTotal : totalAmount
+  const effectiveTotalAmount = !totalManuallyEdited && calculatedTotal ? calculatedTotal : totalAmount
 
   function handleCheckInDateChange(value: string) {
     setCheckInDate(value)
@@ -154,9 +155,9 @@ export default function BookingFormContent({ existing }: BookingFormContentProps
             <TextInput id="check_out_date" type="date" value={checkOutDate} min={minimumCheckOutDate} onChange={(e) => { setCheckOutDate(e.target.value); setTotalManuallyEdited(false) }} required />
           </Field>
 
-          {!isEdit && selectedUnit?.price_per_night && nights > 0 && (
+          {pricePerNight && nights > 0 && (
             <div style={{ marginBottom: '16px', padding: '10px 12px', borderRadius: '10px', background: '#eff6ff', color: '#2563eb', fontSize: '0.84rem', fontWeight: 700 }}>
-              Auto-calculated: {nights} night{nights === 1 ? '' : 's'} at RM {Number(selectedUnit.price_per_night).toFixed(2)} per night = RM {calculatedTotal}
+              Auto-calculated: {nights} night{nights === 1 ? '' : 's'} at RM {Number(pricePerNight).toFixed(2)} per night = RM {calculatedTotal}
             </div>
           )}
 
