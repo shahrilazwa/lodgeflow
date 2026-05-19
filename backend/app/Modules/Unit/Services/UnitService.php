@@ -4,7 +4,9 @@ namespace App\Modules\Unit\Services;
 
 use App\Modules\Property\Models\Property;
 use App\Modules\Unit\Models\Unit;
+use App\Modules\Unit\Models\UnitBed;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 
 class UnitService
 {
@@ -15,7 +17,7 @@ class UnitService
     {
         return Unit::where('property_id', $propertyId)
             ->where('owner_id', $ownerId)
-            ->with('facilities')
+            ->with(['beds', 'facilities'])
             ->orderBy('name')
             ->get();
     }
@@ -35,20 +37,29 @@ class UnitService
      */
     public function create(array $data, int $propertyId, int $ownerId): Unit
     {
-        $unit = Unit::create([
-            'owner_id' => $ownerId,
-            'property_id' => $propertyId,
-            'name' => $data['name'],
-            'type' => $data['type'],
-            'description' => $data['description'] ?? null,
-            'price_per_night' => $data['price_per_night'] ?? null,
-        ]);
+        return DB::transaction(function () use ($data, $propertyId, $ownerId): Unit {
+            $bedData = $this->normalizeBeds($data['beds'] ?? []);
+            $occupancy = $this->resolveOccupancy($data, $bedData);
 
-        if (array_key_exists('facility_ids', $data)) {
-            $unit->facilities()->sync($data['facility_ids'] ?? []);
-        }
+            $unit = Unit::create([
+                'owner_id' => $ownerId,
+                'property_id' => $propertyId,
+                'name' => $data['name'],
+                'type' => $data['type'],
+                'description' => $data['description'] ?? null,
+                'price_per_night' => $data['price_per_night'] ?? null,
+                'max_occupancy' => $occupancy['max_occupancy'],
+                'occupancy_source' => $occupancy['occupancy_source'],
+            ]);
 
-        return $unit->fresh(['facilities']);
+            $this->syncBeds($unit, $bedData);
+
+            if (array_key_exists('facility_ids', $data)) {
+                $unit->facilities()->sync($data['facility_ids'] ?? []);
+            }
+
+            return $unit->fresh(['beds', 'facilities']);
+        });
     }
 
     /**
@@ -58,7 +69,7 @@ class UnitService
     {
         return Unit::where('id', $unitId)
             ->where('owner_id', $ownerId)
-            ->with('facilities')
+            ->with(['beds', 'facilities'])
             ->first();
     }
 
@@ -67,18 +78,32 @@ class UnitService
      */
     public function update(Unit $unit, array $data): Unit
     {
-        $unit->update(array_filter([
-            'name' => $data['name'] ?? null,
-            'type' => $data['type'] ?? null,
-            'description' => array_key_exists('description', $data) ? $data['description'] : null,
-            'price_per_night' => array_key_exists('price_per_night', $data) ? $data['price_per_night'] : null,
-        ], fn ($value, $key) => in_array($key, ['description', 'price_per_night'], true) ? array_key_exists($key, $data) : $value !== null, ARRAY_FILTER_USE_BOTH));
+        return DB::transaction(function () use ($unit, $data): Unit {
+            $bedData = array_key_exists('beds', $data)
+                ? $this->normalizeBeds($data['beds'] ?? [])
+                : $this->existingBedsToArray($unit);
 
-        if (array_key_exists('facility_ids', $data)) {
-            $unit->facilities()->sync($data['facility_ids'] ?? []);
-        }
+            $occupancy = $this->resolveOccupancy($data, $bedData, $unit);
 
-        return $unit->fresh(['facilities']);
+            $unit->update(array_filter([
+                'name' => $data['name'] ?? null,
+                'type' => $data['type'] ?? null,
+                'description' => array_key_exists('description', $data) ? $data['description'] : null,
+                'price_per_night' => array_key_exists('price_per_night', $data) ? $data['price_per_night'] : null,
+                'max_occupancy' => $occupancy['max_occupancy'],
+                'occupancy_source' => $occupancy['occupancy_source'],
+            ], fn ($value, $key) => in_array($key, ['description', 'price_per_night', 'max_occupancy', 'occupancy_source'], true) ? array_key_exists($key, $data) || in_array($key, ['max_occupancy', 'occupancy_source'], true) : $value !== null, ARRAY_FILTER_USE_BOTH));
+
+            if (array_key_exists('beds', $data)) {
+                $this->syncBeds($unit, $bedData);
+            }
+
+            if (array_key_exists('facility_ids', $data)) {
+                $unit->facilities()->sync($data['facility_ids'] ?? []);
+            }
+
+            return $unit->fresh(['beds', 'facilities']);
+        });
     }
 
     /**
@@ -88,7 +113,7 @@ class UnitService
     {
         $unit->update(['is_active' => false]);
 
-        return $unit->fresh(['facilities']);
+        return $unit->fresh(['beds', 'facilities']);
     }
 
     /**
@@ -98,6 +123,80 @@ class UnitService
     {
         $unit->update(['is_active' => true]);
 
-        return $unit->fresh(['facilities']);
+        return $unit->fresh(['beds', 'facilities']);
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $beds
+     * @return array<int, array{bed_type: string, quantity: int, capacity_per_bed: int}>
+     */
+    private function normalizeBeds(array $beds): array
+    {
+        return collect($beds)
+            ->map(fn (array $bed): array => [
+                'bed_type' => (string) $bed['bed_type'],
+                'quantity' => (int) $bed['quantity'],
+                'capacity_per_bed' => (int) ($bed['capacity_per_bed'] ?? UnitBed::DEFAULT_CAPACITY[$bed['bed_type']] ?? 1),
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<int, array{bed_type: string, quantity: int, capacity_per_bed: int}>
+     */
+    private function existingBedsToArray(Unit $unit): array
+    {
+        $beds = [];
+
+        foreach ($unit->beds as $bed) {
+            if (! $bed instanceof UnitBed) {
+                continue;
+            }
+
+            $beds[] = [
+                'bed_type' => $bed->bed_type,
+                'quantity' => $bed->quantity,
+                'capacity_per_bed' => $bed->capacity_per_bed,
+            ];
+        }
+
+        return $beds;
+    }
+
+    /**
+     * @param  array<int, array{bed_type: string, quantity: int, capacity_per_bed: int}>  $beds
+     */
+    private function syncBeds(Unit $unit, array $beds): void
+    {
+        $unit->beds()->delete();
+
+        foreach ($beds as $bed) {
+            $unit->beds()->create($bed);
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @param  array<int, array{bed_type: string, quantity: int, capacity_per_bed: int}>  $beds
+     * @return array{max_occupancy: int|null, occupancy_source: string}
+     */
+    private function resolveOccupancy(array $data, array $beds, ?Unit $existing = null): array
+    {
+        $source = $data['occupancy_source'] ?? $existing->occupancy_source ?? Unit::OCCUPANCY_SOURCE_CALCULATED;
+
+        if ($source === Unit::OCCUPANCY_SOURCE_MANUAL) {
+            return [
+                'max_occupancy' => isset($data['max_occupancy']) ? (int) $data['max_occupancy'] : $existing?->max_occupancy,
+                'occupancy_source' => Unit::OCCUPANCY_SOURCE_MANUAL,
+            ];
+        }
+
+        $calculated = collect($beds)->sum(fn (array $bed): int => $bed['quantity'] * $bed['capacity_per_bed']);
+
+        return [
+            'max_occupancy' => $calculated > 0 ? $calculated : null,
+            'occupancy_source' => Unit::OCCUPANCY_SOURCE_CALCULATED,
+        ];
     }
 }

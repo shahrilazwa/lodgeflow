@@ -129,6 +129,7 @@ function PropertyUnitsPage({ propertyId }: { propertyId: number }) {
                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
                   <StatusBadge tone="info">{UNIT_TYPE_LABELS[unit.type]}</StatusBadge>
                   {unit.price_per_night && <StatusBadge tone="neutral">RM {Number(unit.price_per_night).toFixed(2)} / night</StatusBadge>}
+                  {unit.max_occupancy && <StatusBadge tone="neutral">Up to {unit.max_occupancy} guest{unit.max_occupancy === 1 ? '' : 's'}</StatusBadge>}
                 </div>
                 {unit.description && <p style={{ margin: '8px 0 0', color: '#71717a', fontSize: '0.8rem' }}>{unit.description}</p>}
               </div>

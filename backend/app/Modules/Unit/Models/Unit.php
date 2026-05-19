@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Unit extends Model
 {
@@ -21,6 +22,12 @@ class Unit extends Model
      */
     public const TYPES = ['room', 'suite', 'dormitory_bed', 'entire_unit', 'whole_house'];
 
+    public const OCCUPANCY_SOURCE_CALCULATED = 'calculated';
+
+    public const OCCUPANCY_SOURCE_MANUAL = 'manual';
+
+    public const OCCUPANCY_SOURCES = [self::OCCUPANCY_SOURCE_CALCULATED, self::OCCUPANCY_SOURCE_MANUAL];
+
     protected $fillable = [
         'owner_id',
         'property_id',
@@ -28,6 +35,8 @@ class Unit extends Model
         'type',
         'description',
         'price_per_night',
+        'max_occupancy',
+        'occupancy_source',
         'is_active',
     ];
 
@@ -35,6 +44,7 @@ class Unit extends Model
     {
         return [
             'price_per_night' => 'decimal:2',
+            'max_occupancy' => 'integer',
             'is_active' => 'boolean',
         ];
     }
@@ -57,5 +67,10 @@ class Unit extends Model
     public function facilities(): BelongsToMany
     {
         return $this->belongsToMany(Facility::class, 'facility_unit');
+    }
+
+    public function beds(): HasMany
+    {
+        return $this->hasMany(UnitBed::class);
     }
 }
