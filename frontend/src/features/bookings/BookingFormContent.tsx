@@ -32,6 +32,8 @@ export default function BookingFormContent({ existing }: BookingFormContentProps
   const [checkInDate, setCheckInDate] = useState(normalizeDateInput(existing?.check_in_date))
   const [checkOutDate, setCheckOutDate] = useState(normalizeDateInput(existing?.check_out_date))
   const [totalAmount, setTotalAmount] = useState(existing?.total_amount ?? '')
+  const [allowCustomerCancellation, setAllowCustomerCancellation] = useState(existing?.allow_customer_cancellation ?? false)
+  const [allowCustomerModification, setAllowCustomerModification] = useState(existing?.allow_customer_modification ?? false)
   const [totalManuallyEdited, setTotalManuallyEdited] = useState(false)
   const [errors, setErrors] = useState<Record<string, string[]>>({})
   const [generalError, setGeneralError] = useState('')
@@ -61,11 +63,16 @@ export default function BookingFormContent({ existing }: BookingFormContentProps
     setErrors({})
     setGeneralError('')
 
+    const policyFlags = {
+      allow_customer_cancellation: allowCustomerCancellation,
+      allow_customer_modification: allowCustomerModification,
+    }
+
     try {
       if (isEdit && existing) {
-        await updateMutation.mutateAsync({ check_in_date: checkInDate, check_out_date: checkOutDate, total_amount: Number(effectiveTotalAmount) })
+        await updateMutation.mutateAsync({ check_in_date: checkInDate, check_out_date: checkOutDate, total_amount: Number(effectiveTotalAmount), ...policyFlags })
       } else {
-        await createMutation.mutateAsync({ unit_id: Number(unitId), guest_id: Number(guestId), check_in_date: checkInDate, check_out_date: checkOutDate, total_amount: Number(effectiveTotalAmount) })
+        await createMutation.mutateAsync({ unit_id: Number(unitId), guest_id: Number(guestId), check_in_date: checkInDate, check_out_date: checkOutDate, total_amount: Number(effectiveTotalAmount), ...policyFlags })
       }
       navigate('/bookings')
     } catch (err) {
@@ -89,7 +96,7 @@ export default function BookingFormContent({ existing }: BookingFormContentProps
       <PageHeader
         eyebrow="Booking"
         title={isEdit ? 'Edit Booking' : 'Create Booking'}
-        description={isEdit ? 'Update stay dates and booking amount.' : 'Create a booking by selecting a guest, property, unit and stay dates.'}
+        description={isEdit ? 'Update stay dates, booking amount and customer policy.' : 'Create a booking by selecting a guest, property, unit and stay dates.'}
         backTo="/bookings"
         backLabel="Back to Bookings"
       />
@@ -165,6 +172,13 @@ export default function BookingFormContent({ existing }: BookingFormContentProps
             <TextInput id="total_amount" type="number" step="0.01" min="0.01" value={effectiveTotalAmount} onChange={(e) => { setTotalAmount(e.target.value); setTotalManuallyEdited(true) }} required />
           </Field>
 
+          <CustomerPolicyCheckboxes
+            allowCustomerCancellation={allowCustomerCancellation}
+            allowCustomerModification={allowCustomerModification}
+            onCancellationChange={setAllowCustomerCancellation}
+            onModificationChange={setAllowCustomerModification}
+          />
+
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <Button type="submit" disabled={isPending || invalidDateRange} variant="primary">{isPending ? 'Saving...' : isEdit ? 'Update Booking' : 'Create Booking'}</Button>
             <Button type="button" onClick={() => navigate('/bookings')}>Cancel</Button>
@@ -173,6 +187,38 @@ export default function BookingFormContent({ existing }: BookingFormContentProps
       </ContentCard>
     </PageLayout>
   )
+}
+
+function CustomerPolicyCheckboxes({ allowCustomerCancellation, allowCustomerModification, onCancellationChange, onModificationChange }: {
+  allowCustomerCancellation: boolean
+  allowCustomerModification: boolean
+  onCancellationChange: (value: boolean) => void
+  onModificationChange: (value: boolean) => void
+}) {
+  return (
+    <div style={{ marginBottom: '18px', display: 'grid', gap: '10px' }}>
+      <p style={{ margin: 0, color: '#71717a', fontSize: '0.78rem', lineHeight: 1.5 }}>
+        These settings define what the customer may do later from a customer-facing confirmation page or link. Staff can still manage the booking from the dashboard.
+      </p>
+      <label style={checkboxLabelStyle}>
+        <input type="checkbox" checked={allowCustomerCancellation} onChange={(e) => onCancellationChange(e.target.checked)} />
+        <span>Allow customer cancellation</span>
+      </label>
+      <label style={checkboxLabelStyle}>
+        <input type="checkbox" checked={allowCustomerModification} onChange={(e) => onModificationChange(e.target.checked)} />
+        <span>Allow customer modification</span>
+      </label>
+    </div>
+  )
+}
+
+const checkboxLabelStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '10px',
+  color: '#18181b',
+  fontSize: '0.86rem',
+  fontWeight: 700,
 }
 
 function calculateNights(checkInDate: string, checkOutDate: string): number {
