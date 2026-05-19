@@ -24,6 +24,16 @@ class DashboardController extends Controller
     }
 
     /**
+     * Near-term booking queue for front desk work.
+     */
+    public function bookingQueue(Request $request): JsonResponse
+    {
+        $queue = $this->dashboardService->getBookingQueue($request->user()->id);
+
+        return response()->json(['data' => $queue]);
+    }
+
+    /**
      * Monthly income total (sum of payment-type amounts for current month).
      */
     public function income(Request $request): JsonResponse
