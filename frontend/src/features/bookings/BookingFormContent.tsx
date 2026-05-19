@@ -37,11 +37,23 @@ export default function BookingFormContent({ existing }: BookingFormContentProps
   const [generalError, setGeneralError] = useState('')
 
   const selectedUnit = useMemo(() => units?.find((unit) => String(unit.id) === unitId), [units, unitId])
+  const minimumCheckOutDate = getNextDateString(checkInDate)
   const nights = calculateNights(checkInDate, checkOutDate)
+  const invalidDateRange = Boolean(checkInDate && checkOutDate && nights <= 0)
   const calculatedTotal = selectedUnit?.price_per_night && nights > 0
     ? (Number(selectedUnit.price_per_night) * nights).toFixed(2)
     : ''
   const effectiveTotalAmount = !isEdit && !totalManuallyEdited && calculatedTotal ? calculatedTotal : totalAmount
+
+  function handleCheckInDateChange(value: string) {
+    setCheckInDate(value)
+    setTotalManuallyEdited(false)
+
+    const nextDate = getNextDateString(value)
+    if (nextDate && (!checkOutDate || checkOutDate <= value)) {
+      setCheckOutDate(nextDate)
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -135,11 +147,11 @@ export default function BookingFormContent({ existing }: BookingFormContentProps
           )}
 
           <Field label="Check-in Date" htmlFor="check_in_date" required error={errors.check_in_date?.[0]}>
-            <TextInput id="check_in_date" type="date" value={checkInDate} onChange={(e) => { setCheckInDate(e.target.value); setTotalManuallyEdited(false) }} required />
+            <TextInput id="check_in_date" type="date" value={checkInDate} onChange={(e) => handleCheckInDateChange(e.target.value)} required />
           </Field>
 
-          <Field label="Check-out Date" htmlFor="check_out_date" required error={errors.check_out_date?.[0]}>
-            <TextInput id="check_out_date" type="date" value={checkOutDate} onChange={(e) => { setCheckOutDate(e.target.value); setTotalManuallyEdited(false) }} required />
+          <Field label="Check-out Date" htmlFor="check_out_date" required error={errors.check_out_date?.[0] || (invalidDateRange ? 'Check-out date must be after check-in date.' : undefined)}>
+            <TextInput id="check_out_date" type="date" value={checkOutDate} min={minimumCheckOutDate} onChange={(e) => { setCheckOutDate(e.target.value); setTotalManuallyEdited(false) }} required />
           </Field>
 
           {!isEdit && selectedUnit?.price_per_night && nights > 0 && (
@@ -153,7 +165,7 @@ export default function BookingFormContent({ existing }: BookingFormContentProps
           </Field>
 
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            <Button type="submit" disabled={isPending} variant="primary">{isPending ? 'Saving...' : isEdit ? 'Update Booking' : 'Create Booking'}</Button>
+            <Button type="submit" disabled={isPending || invalidDateRange} variant="primary">{isPending ? 'Saving...' : isEdit ? 'Update Booking' : 'Create Booking'}</Button>
             <Button type="button" onClick={() => navigate('/bookings')}>Cancel</Button>
           </div>
         </form>
@@ -172,4 +184,13 @@ function calculateNights(checkInDate: string, checkOutDate: string): number {
   if (diffMs <= 0) return 0
 
   return Math.round(diffMs / 86400000)
+}
+
+function getNextDateString(dateString: string): string | undefined {
+  if (!dateString) return undefined
+
+  const date = new Date(`${dateString}T00:00:00`)
+  date.setDate(date.getDate() + 1)
+
+  return date.toISOString().slice(0, 10)
 }
