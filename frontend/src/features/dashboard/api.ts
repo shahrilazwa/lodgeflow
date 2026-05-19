@@ -1,6 +1,28 @@
 import { useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 
+export interface FrontDeskOverview {
+  date: string
+  active_units: number
+  occupied_units: number
+  occupancy_rate: number
+  check_ins_today: number
+  check_outs_today: number
+  pending_payments: number
+  pending_cleaning: number
+  open_maintenance: number
+}
+
+export function useDashboardFrontDeskOverview() {
+  return useQuery({
+    queryKey: ['dashboard', 'front-desk-overview'],
+    queryFn: async () => {
+      const { data } = await api.get<{ data: FrontDeskOverview }>('/dashboard/front-desk-overview')
+      return data.data
+    },
+  })
+}
+
 export function useDashboardIncome() {
   return useQuery({
     queryKey: ['dashboard', 'income'],
