@@ -1,5 +1,57 @@
 import { useMemo, useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faBaby,
+  faBanSmoking,
+  faBath,
+  faBed,
+  faBellConcierge,
+  faBowlRice,
+  faBox,
+  faBoxArchive,
+  faBoxOpen,
+  faBreadSlice,
+  faBriefcase,
+  faCalendarDays,
+  faChair,
+  faCircleDot,
+  faDoorOpen,
+  faFan,
+  faFireBurner,
+  faFireExtinguisher,
+  faGamepad,
+  faHotTubPerson,
+  faKey,
+  faKitMedical,
+  faLock,
+  faMugHot,
+  faPeopleRoof,
+  faPumpSoap,
+  faScroll,
+  faShieldHalved,
+  faShirt,
+  faSmog,
+  faSnowflake,
+  faSoap,
+  faSprayCanSparkles,
+  faSquareParking,
+  faTable,
+  faToilet,
+  faTree,
+  faTriangleExclamation,
+  faTv,
+  faUmbrellaBeach,
+  faUtensils,
+  faVideo,
+  faVolumeHigh,
+  faWaterLadder,
+  faWheelchair,
+  faWifi,
+  faWind,
+  faWindowMaximize,
+} from '@fortawesome/free-solid-svg-icons'
 import { useCreateFacility } from './api'
+import type { IconDefinition } from '@fortawesome/fontawesome-svg-core'
 import type { Facility, FacilityScope } from './types'
 
 interface FacilitySelectorProps {
@@ -58,7 +110,7 @@ export default function FacilitySelector({ facilities, selectedIds, onChange, sc
     }
 
     try {
-      const facility = await createFacility.mutateAsync({ name, category, scope: customScope })
+      const facility = await createFacility.mutateAsync({ name, category, scope: customScope, icon: defaultIconForCategory(category) })
       onChange([...selectedIds, facility.id])
       setCustomName('')
       setCustomCategory(category)
@@ -103,7 +155,10 @@ export default function FacilitySelector({ facilities, selectedIds, onChange, sc
         {selectedFacilities.length > 0 && (
           <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             {selectedFacilities.slice(0, 8).map((facility) => (
-              <span key={facility.id} style={selectedSummaryChipStyle}>{facility.name}</span>
+              <span key={facility.id} style={selectedSummaryChipStyle}>
+                <FacilityIcon facility={facility} compact />
+                {facility.name}
+              </span>
             ))}
             {selectedFacilities.length > 8 && <span style={moreChipStyle}>+{selectedFacilities.length - 8} more</span>}
           </div>
@@ -165,9 +220,12 @@ export default function FacilitySelector({ facilities, selectedIds, onChange, sc
                       const checked = selectedIds.includes(facility.id)
                       return (
                         <label key={facility.id} style={facilityRowStyle}>
-                          <span style={{ display: 'grid', gap: '3px' }}>
-                            <span style={{ color: '#18181b', fontSize: '0.92rem', fontWeight: 700 }}>{facility.name}</span>
-                            {facility.scope === 'both' && <span style={{ color: '#71717a', fontSize: '0.76rem' }}>Available for properties and units</span>}
+                          <span style={facilityTextWrapStyle}>
+                            <FacilityIcon facility={facility} />
+                            <span style={{ display: 'grid', gap: '3px' }}>
+                              <span style={{ color: '#18181b', fontSize: '0.92rem', fontWeight: 700 }}>{facility.name}</span>
+                              {facility.scope === 'both' && <span style={{ color: '#71717a', fontSize: '0.76rem' }}>Available for properties and units</span>}
+                            </span>
                           </span>
                           <input type="checkbox" checked={checked} onChange={() => toggleFacility(facility.id)} style={checkboxStyle} />
                         </label>
@@ -190,6 +248,87 @@ export default function FacilitySelector({ facilities, selectedIds, onChange, sc
       )}
     </>
   )
+}
+
+function FacilityIcon({ facility, compact = false }: { facility: Facility; compact?: boolean }) {
+  const icon = iconMap[facility.icon ?? ''] ?? iconMap[defaultIconForCategory(facility.category ?? '')] ?? faCircleDot
+
+  return (
+    <span style={compact ? summaryIconStyle : rowIconStyle} aria-hidden="true">
+      <FontAwesomeIcon icon={icon} />
+    </span>
+  )
+}
+
+function defaultIconForCategory(category: string): string {
+  const normalized = category.toLowerCase()
+
+  if (normalized.includes('bathroom')) return 'bath'
+  if (normalized.includes('laundry')) return 'shirt'
+  if (normalized.includes('entertainment')) return 'tv'
+  if (normalized.includes('family')) return 'baby'
+  if (normalized.includes('cooling') || normalized.includes('heating')) return 'fan'
+  if (normalized.includes('internet') || normalized.includes('office')) return 'wifi'
+  if (normalized.includes('kitchen') || normalized.includes('dining')) return 'utensils'
+  if (normalized.includes('location')) return 'door-open'
+  if (normalized.includes('outdoor')) return 'tree'
+  if (normalized.includes('parking')) return 'parking'
+  if (normalized.includes('service')) return 'bell-concierge'
+  if (normalized.includes('safety')) return 'shield-halved'
+  if (normalized.includes('policy')) return 'ban-smoking'
+
+  return 'circle-dot'
+}
+
+const iconMap: Record<string, IconDefinition> = {
+  baby: faBaby,
+  'ban-smoking': faBanSmoking,
+  bath: faBath,
+  bed: faBed,
+  'bell-concierge': faBellConcierge,
+  'bowl-rice': faBowlRice,
+  box: faBox,
+  'box-archive': faBoxArchive,
+  'box-open': faBoxOpen,
+  'bread-slice': faBreadSlice,
+  briefcase: faBriefcase,
+  'calendar-days': faCalendarDays,
+  chair: faChair,
+  'circle-dot': faCircleDot,
+  'door-open': faDoorOpen,
+  fan: faFan,
+  'fire-burner': faFireBurner,
+  'fire-extinguisher': faFireExtinguisher,
+  gamepad: faGamepad,
+  'hot-tub-person': faHotTubPerson,
+  key: faKey,
+  'kit-medical': faKitMedical,
+  lock: faLock,
+  'mug-hot': faMugHot,
+  parking: faSquareParking,
+  'people-roof': faPeopleRoof,
+  'pump-soap': faPumpSoap,
+  scroll: faScroll,
+  'shield-halved': faShieldHalved,
+  shirt: faShirt,
+  smog: faSmog,
+  snowflake: faSnowflake,
+  soap: faSoap,
+  'spray-can-sparkles': faSprayCanSparkles,
+  table: faTable,
+  toilet: faToilet,
+  tree: faTree,
+  'triangle-exclamation': faTriangleExclamation,
+  tv: faTv,
+  'umbrella-beach': faUmbrellaBeach,
+  utensils: faUtensils,
+  video: faVideo,
+  'volume-high': faVolumeHigh,
+  'water-ladder': faWaterLadder,
+  wheelchair: faWheelchair,
+  wifi: faWifi,
+  wind: faWind,
+  'window-maximize': faWindowMaximize,
 }
 
 const summaryBoxStyle: React.CSSProperties = {
@@ -215,6 +354,7 @@ const manageButtonStyle: React.CSSProperties = {
 const selectedSummaryChipStyle: React.CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
+  gap: '7px',
   minHeight: '30px',
   borderRadius: '999px',
   background: '#eff6ff',
@@ -353,13 +493,35 @@ const categoryTitleStyle: React.CSSProperties = {
 }
 
 const facilityRowStyle: React.CSSProperties = {
-  minHeight: '58px',
+  minHeight: '62px',
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
   gap: '16px',
   borderBottom: '1px solid #e4e4e7',
   cursor: 'pointer',
+}
+
+const facilityTextWrapStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '16px',
+  minWidth: 0,
+}
+
+const rowIconStyle: React.CSSProperties = {
+  width: '26px',
+  minWidth: '26px',
+  display: 'inline-flex',
+  justifyContent: 'center',
+  color: '#18181b',
+  fontSize: '1.1rem',
+}
+
+const summaryIconStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  color: '#2563eb',
+  fontSize: '0.78rem',
 }
 
 const checkboxStyle: React.CSSProperties = {
