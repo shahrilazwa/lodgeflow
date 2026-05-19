@@ -52,6 +52,7 @@ Route::prefix('auth')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     // Facilities
     Route::get('/facilities', [FacilityController::class, 'index']);
+    Route::post('/facilities', [FacilityController::class, 'store']);
 
     // Properties
     Route::get('/properties', [PropertyController::class, 'index']);
