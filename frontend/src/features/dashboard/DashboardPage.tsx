@@ -258,9 +258,9 @@ const dashboardStyles = `
   .dashboard-frontdesk-occupancy { margin-top: 18px; display: inline-flex; align-items: baseline; gap: 10px; padding: 12px 14px; border-radius: 14px; background: #f8fafc; }
   .dashboard-frontdesk-occupancy strong { color: #18181b; font-size: 1.5rem; }
   .dashboard-frontdesk-occupancy span { color: #2563eb; font-size: 0.78rem; font-weight: 800; }
-  .dashboard-frontdesk-stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
-  .dashboard-frontdesk-stat { padding: 14px; border-radius: 14px; background: #f8fafc; border: 1px solid #f1f5f9; }
-  .dashboard-frontdesk-stat span { display: block; color: #71717a; font-size: 0.74rem; font-weight: 700; }
+  .dashboard-frontdesk-stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; align-items: stretch; }
+  .dashboard-frontdesk-stat { min-height: 132px; padding: 14px; border-radius: 14px; background: #f8fafc; border: 1px solid #f1f5f9; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .dashboard-frontdesk-stat span { display: block; color: #71717a; font-size: 0.74rem; font-weight: 700; line-height: 1.25; min-height: 2.2em; }
   .dashboard-frontdesk-stat strong { display: block; margin-top: 8px; color: #18181b; font-size: 1.45rem; line-height: 1; }
   .dashboard-metric-body { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
   .dashboard-value { margin: 0; color: #18181b; font-size: clamp(1.35rem, 2.4vw, 1.85rem); line-height: 1.1; font-weight: 800; letter-spacing: -0.03em; }
