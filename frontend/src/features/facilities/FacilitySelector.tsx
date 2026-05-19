@@ -153,14 +153,14 @@ export default function FacilitySelector({ facilities, selectedIds, onChange, sc
         </div>
 
         {selectedFacilities.length > 0 && (
-          <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <div style={selectedSummaryListStyle}>
             {selectedFacilities.slice(0, 8).map((facility) => (
-              <span key={facility.id} style={selectedSummaryChipStyle}>
+              <span key={facility.id} style={selectedSummaryItemStyle}>
                 <FacilityIcon facility={facility} compact />
-                {facility.name}
+                <span>{facility.name}</span>
               </span>
             ))}
-            {selectedFacilities.length > 8 && <span style={moreChipStyle}>+{selectedFacilities.length - 8} more</span>}
+            {selectedFacilities.length > 8 && <span style={moreItemStyle}>+{selectedFacilities.length - 8} more facilities</span>}
           </div>
         )}
       </div>
@@ -335,7 +335,7 @@ const summaryBoxStyle: React.CSSProperties = {
   border: '1px solid #e4e4e7',
   borderRadius: '14px',
   background: '#ffffff',
-  padding: '14px',
+  padding: '16px 18px',
 }
 
 const manageButtonStyle: React.CSSProperties = {
@@ -351,23 +351,29 @@ const manageButtonStyle: React.CSSProperties = {
   whiteSpace: 'nowrap',
 }
 
-const selectedSummaryChipStyle: React.CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: '7px',
-  minHeight: '30px',
-  borderRadius: '999px',
-  background: '#eff6ff',
-  color: '#2563eb',
-  fontSize: '0.78rem',
-  fontWeight: 800,
-  padding: '0 10px',
+const selectedSummaryListStyle: React.CSSProperties = {
+  marginTop: '16px',
+  display: 'grid',
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  columnGap: '28px',
+  rowGap: '14px',
 }
 
-const moreChipStyle: React.CSSProperties = {
-  ...selectedSummaryChipStyle,
-  background: '#f4f4f5',
+const selectedSummaryItemStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '14px',
+  minHeight: '30px',
+  color: '#18181b',
+  fontSize: '0.92rem',
+  fontWeight: 500,
+  lineHeight: 1.35,
+}
+
+const moreItemStyle: React.CSSProperties = {
+  ...selectedSummaryItemStyle,
   color: '#52525b',
+  fontSize: '0.84rem',
 }
 
 const overlayStyle: React.CSSProperties = {
@@ -519,9 +525,12 @@ const rowIconStyle: React.CSSProperties = {
 }
 
 const summaryIconStyle: React.CSSProperties = {
+  width: '24px',
+  minWidth: '24px',
   display: 'inline-flex',
-  color: '#2563eb',
-  fontSize: '0.78rem',
+  justifyContent: 'center',
+  color: '#18181b',
+  fontSize: '1.05rem',
 }
 
 const checkboxStyle: React.CSSProperties = {
