@@ -24,6 +24,7 @@ export interface BookingUnit {
   id: number
   name: string
   type: string
+  price_per_night?: string | null
 }
 
 export interface BookingGuest {
