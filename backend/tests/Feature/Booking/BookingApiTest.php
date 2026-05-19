@@ -53,7 +53,27 @@ class BookingApiTest extends TestCase
             ->assertJsonPath('data.status', Booking::STATUS_PENDING_CUSTOMER_CONFIRMATION)
             ->assertJsonPath('data.payment_status', 'unpaid')
             ->assertJsonPath('data.unit_id', $this->unit->id)
-            ->assertJsonPath('data.guest_id', $this->guest->id);
+            ->assertJsonPath('data.guest_id', $this->guest->id)
+            ->assertJsonPath('data.allow_customer_cancellation', false)
+            ->assertJsonPath('data.allow_customer_modification', false);
+    }
+
+    public function test_owner_can_create_booking_with_customer_policy_flags(): void
+    {
+        $response = $this->actingAs($this->owner, 'sanctum')
+            ->postJson('/api/v1/bookings', [
+                'unit_id' => $this->unit->id,
+                'guest_id' => $this->guest->id,
+                'check_in_date' => '2026-06-01',
+                'check_out_date' => '2026-06-03',
+                'total_amount' => 200.00,
+                'allow_customer_cancellation' => true,
+                'allow_customer_modification' => true,
+            ]);
+
+        $response->assertStatus(201)
+            ->assertJsonPath('data.allow_customer_cancellation', true)
+            ->assertJsonPath('data.allow_customer_modification', true);
     }
 
     public function test_create_booking_requires_valid_data(): void
@@ -348,10 +368,14 @@ class BookingApiTest extends TestCase
         $response = $this->actingAs($this->owner, 'sanctum')
             ->putJson("/api/v1/bookings/{$booking->id}", [
                 'total_amount' => 350.00,
+                'allow_customer_cancellation' => true,
+                'allow_customer_modification' => true,
             ]);
 
         $response->assertStatus(200)
-            ->assertJsonPath('data.total_amount', '350.00');
+            ->assertJsonPath('data.total_amount', '350.00')
+            ->assertJsonPath('data.allow_customer_cancellation', true)
+            ->assertJsonPath('data.allow_customer_modification', true);
     }
 
     public function test_owner_cannot_update_checked_in_booking(): void
