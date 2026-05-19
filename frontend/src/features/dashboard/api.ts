@@ -23,6 +23,40 @@ export function useDashboardFrontDeskOverview() {
   })
 }
 
+export interface BookingQueueItem {
+  id: number
+  queue_type: string
+  queue_label: string
+  guest_name: string
+  unit_name: string
+  status: string
+  payment_status: string
+  check_in_date: string | null
+  check_out_date: string | null
+  total_amount: number
+  net_paid_amount: number
+  outstanding_amount: number
+}
+
+export interface BookingQueue {
+  date: string
+  window: string
+  upcoming_check_ins: BookingQueueItem[]
+  upcoming_check_outs: BookingQueueItem[]
+  currently_checked_in: BookingQueueItem[]
+  payment_attention: BookingQueueItem[]
+}
+
+export function useDashboardBookingQueue() {
+  return useQuery({
+    queryKey: ['dashboard', 'booking-queue'],
+    queryFn: async () => {
+      const { data } = await api.get<{ data: BookingQueue }>('/dashboard/booking-queue')
+      return data.data
+    },
+  })
+}
+
 export function useDashboardIncome() {
   return useQuery({
     queryKey: ['dashboard', 'income'],

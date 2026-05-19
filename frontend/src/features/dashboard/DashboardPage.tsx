@@ -18,6 +18,7 @@ import {
   useDashboardPendingCleaning,
   useDashboardPendingMaintenance,
 } from './api'
+import BookingQueueCard from './BookingQueueCard'
 import DashboardCard from './DashboardCard'
 import FrontDeskOverviewCard from './FrontDeskOverviewCard'
 
@@ -36,6 +37,10 @@ export default function DashboardPage() {
 
       <section className="dashboard-frontdesk-section" aria-label="Front desk overview">
         <FrontDeskOverviewCard />
+      </section>
+
+      <section className="dashboard-queue-section" aria-label="Booking queue">
+        <BookingQueueCard />
       </section>
 
       <section className="dashboard-metric-grid" aria-label="Financial summary">
@@ -242,7 +247,7 @@ const dashboardStyles = `
   .dashboard-eyebrow { margin: 0 0 6px; color: #2563eb; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
   .dashboard-header h1 { margin: 0; color: #18181b; font-size: clamp(1.65rem, 3vw, 2.35rem); font-weight: 800; letter-spacing: -0.035em; }
   .dashboard-description { max-width: 620px; margin: 8px 0 0; color: #71717a; font-size: 0.9rem; line-height: 1.6; }
-  .dashboard-frontdesk-section { margin-bottom: 14px; }
+  .dashboard-frontdesk-section, .dashboard-queue-section { margin-bottom: 14px; }
   .dashboard-metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
   .dashboard-insight-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.9fr); gap: 14px; margin-top: 14px; }
   .dashboard-task-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
@@ -262,6 +267,17 @@ const dashboardStyles = `
   .dashboard-frontdesk-stat { min-height: 132px; padding: 14px; border-radius: 14px; background: #f8fafc; border: 1px solid #f1f5f9; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
   .dashboard-frontdesk-stat span { display: block; color: #71717a; font-size: 0.74rem; font-weight: 700; line-height: 1.25; min-height: 2.2em; }
   .dashboard-frontdesk-stat strong { display: block; margin-top: 8px; color: #18181b; font-size: 1.45rem; line-height: 1; }
+  .dashboard-booking-queue-card { min-height: 0; }
+  .dashboard-booking-queue { display: grid; gap: 10px; }
+  .dashboard-queue-header { display: flex; justify-content: space-between; gap: 12px; color: #71717a; font-size: 0.8rem; }
+  .dashboard-queue-header span { color: #18181b; font-weight: 800; }
+  .dashboard-queue-header strong { color: #2563eb; font-weight: 800; }
+  .dashboard-queue-list { margin: 0; padding: 0; list-style: none; }
+  .dashboard-queue-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; border-top: 1px solid #f4f4f5; }
+  .dashboard-queue-name { color: #18181b; text-decoration: none; font-size: 0.9rem; font-weight: 800; }
+  .dashboard-queue-row p { margin: 4px 0 0; color: #71717a; font-size: 0.78rem; }
+  .dashboard-queue-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+  .dashboard-queue-meta small { color: #b45309; font-size: 0.72rem; font-weight: 700; }
   .dashboard-metric-body { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
   .dashboard-value { margin: 0; color: #18181b; font-size: clamp(1.35rem, 2.4vw, 1.85rem); line-height: 1.1; font-weight: 800; letter-spacing: -0.03em; }
   .dashboard-value.is-blue { color: #2563eb; }
@@ -307,5 +323,5 @@ const dashboardStyles = `
   .dashboard-pill { display: inline-flex; align-items: center; justify-content: center; min-height: 22px; padding: 0 8px; border-radius: 999px; font-size: 0.7rem; font-weight: 700; text-transform: capitalize; white-space: nowrap; }
   .dashboard-empty { margin: 0; display: inline-flex; align-items: center; gap: 8px; color: #71717a; font-size: 0.86rem; }
   @media (max-width: 1180px) { .dashboard-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .dashboard-insight-grid, .dashboard-frontdesk-layout { grid-template-columns: 1fr; } .dashboard-frontdesk-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-  @media (max-width: 720px) { .dashboard-metric-grid, .dashboard-task-grid, .dashboard-booking-layout, .dashboard-operations-layout { grid-template-columns: 1fr; } .dashboard-frontdesk-stats { grid-template-columns: 1fr; } .dashboard-card { padding: 18px; } }
+  @media (max-width: 720px) { .dashboard-metric-grid, .dashboard-task-grid, .dashboard-booking-layout, .dashboard-operations-layout { grid-template-columns: 1fr; } .dashboard-frontdesk-stats { grid-template-columns: 1fr; } .dashboard-card { padding: 18px; } .dashboard-queue-row { align-items: flex-start; flex-direction: column; } .dashboard-queue-meta { align-items: flex-start; } }
 `
