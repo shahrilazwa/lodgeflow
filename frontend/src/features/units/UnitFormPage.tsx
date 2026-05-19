@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button, ContentCard, Field, PageHeader, PageLayout, TextArea, TextInput } from '@/components/ui/Page'
+import FacilitySelector from '@/features/facilities/FacilitySelector'
+import { useFacilities } from '@/features/facilities/api'
 import { useCreateUnit, useUnit, useUpdateUnit } from './api'
 import { UNIT_TYPES, UNIT_TYPE_LABELS } from './types'
 import type { UnitType } from './types'
@@ -13,6 +15,7 @@ export default function UnitFormPage() {
   const navigate = useNavigate()
 
   const { data: existing, isLoading } = useUnit(Number(id))
+  const { data: facilities } = useFacilities()
   const createMutation = useCreateUnit(Number(propertyId))
   const updateMutation = useUpdateUnit(Number(id))
 
@@ -20,6 +23,7 @@ export default function UnitFormPage() {
   const [type, setType] = useState<UnitType>('room')
   const [pricePerNight, setPricePerNight] = useState('')
   const [description, setDescription] = useState('')
+  const [facilityIds, setFacilityIds] = useState<number[]>([])
   const [errors, setErrors] = useState<Record<string, string[]>>({})
   const [initialized, setInitialized] = useState(false)
 
@@ -28,6 +32,7 @@ export default function UnitFormPage() {
     setType(existing.type)
     setPricePerNight(existing.price_per_night || '')
     setDescription(existing.description || '')
+    setFacilityIds(existing.facilities?.map((facility) => facility.id) ?? [])
     setInitialized(true)
   }
 
@@ -53,6 +58,7 @@ export default function UnitFormPage() {
       type,
       description: description || null,
       price_per_night: pricePerNight ? Number(pricePerNight) : null,
+      facility_ids: facilityIds,
     }
 
     try {
@@ -78,7 +84,7 @@ export default function UnitFormPage() {
       <PageHeader
         eyebrow="Unit"
         title={isEdit ? 'Edit Unit' : 'Create Unit'}
-        description={isEdit ? 'Update unit details, type and nightly price.' : 'Create a room, bed, hall or whole-house unit under this property.'}
+        description={isEdit ? 'Update unit details, type, nightly price and facilities.' : 'Create a room, bed, hall or whole-house unit under this property.'}
         backTo={backPath}
         backLabel="Back to Units"
       />
@@ -103,6 +109,10 @@ export default function UnitFormPage() {
 
           <Field label="Description" htmlFor="description" error={errors.description?.[0]}>
             <TextArea id="description" value={description} onChange={(e) => setDescription(e.target.value)} maxLength={500} />
+          </Field>
+
+          <Field label="Facilities" htmlFor="facilities" error={errors.facility_ids?.[0]}>
+            <FacilitySelector facilities={facilities} selectedIds={facilityIds} onChange={setFacilityIds} scope="unit" />
           </Field>
 
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>

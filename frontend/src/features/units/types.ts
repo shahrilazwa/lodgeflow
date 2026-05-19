@@ -1,3 +1,5 @@
+import type { Facility } from '@/features/facilities/types'
+
 export const UNIT_TYPES = ['room', 'suite', 'dormitory_bed', 'entire_unit', 'whole_house'] as const
 export type UnitType = (typeof UNIT_TYPES)[number]
 
@@ -18,6 +20,7 @@ export interface Unit {
   description: string | null
   price_per_night: string | null
   is_active: boolean
+  facilities?: Facility[]
   created_at: string
   updated_at: string
 }
@@ -27,6 +30,7 @@ export interface CreateUnitData {
   type: UnitType
   description?: string
   price_per_night?: number | null
+  facility_ids?: number[]
 }
 
 export interface UpdateUnitData {
@@ -34,4 +38,5 @@ export interface UpdateUnitData {
   type?: UnitType
   description?: string | null
   price_per_night?: number | null
+  facility_ids?: number[]
 }

@@ -15,6 +15,7 @@ class UnitService
     {
         return Unit::where('property_id', $propertyId)
             ->where('owner_id', $ownerId)
+            ->with('facilities')
             ->orderBy('name')
             ->get();
     }
@@ -43,7 +44,11 @@ class UnitService
             'price_per_night' => $data['price_per_night'] ?? null,
         ]);
 
-        return $unit->fresh();
+        if (array_key_exists('facility_ids', $data)) {
+            $unit->facilities()->sync($data['facility_ids'] ?? []);
+        }
+
+        return $unit->fresh(['facilities']);
     }
 
     /**
@@ -53,6 +58,7 @@ class UnitService
     {
         return Unit::where('id', $unitId)
             ->where('owner_id', $ownerId)
+            ->with('facilities')
             ->first();
     }
 
@@ -68,7 +74,11 @@ class UnitService
             'price_per_night' => array_key_exists('price_per_night', $data) ? $data['price_per_night'] : null,
         ], fn ($value, $key) => in_array($key, ['description', 'price_per_night'], true) ? array_key_exists($key, $data) : $value !== null, ARRAY_FILTER_USE_BOTH));
 
-        return $unit->fresh();
+        if (array_key_exists('facility_ids', $data)) {
+            $unit->facilities()->sync($data['facility_ids'] ?? []);
+        }
+
+        return $unit->fresh(['facilities']);
     }
 
     /**
@@ -78,7 +88,7 @@ class UnitService
     {
         $unit->update(['is_active' => false]);
 
-        return $unit->fresh();
+        return $unit->fresh(['facilities']);
     }
 
     /**
@@ -88,6 +98,6 @@ class UnitService
     {
         $unit->update(['is_active' => true]);
 
-        return $unit->fresh();
+        return $unit->fresh(['facilities']);
     }
 }

@@ -3,11 +3,13 @@
 namespace App\Modules\Unit\Models;
 
 use App\Models\Owner;
+use App\Modules\Facility\Models\Facility;
 use App\Modules\Property\Models\Property;
 use Database\Factories\UnitFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Unit extends Model
 {
@@ -50,5 +52,10 @@ class Unit extends Model
     public function property(): BelongsTo
     {
         return $this->belongsTo(Property::class);
+    }
+
+    public function facilities(): BelongsToMany
+    {
+        return $this->belongsToMany(Facility::class, 'facility_unit');
     }
 }

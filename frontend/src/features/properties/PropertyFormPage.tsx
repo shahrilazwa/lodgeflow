@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button, ContentCard, Field, PageHeader, PageLayout, TextArea, TextInput } from '@/components/ui/Page'
+import FacilitySelector from '@/features/facilities/FacilitySelector'
+import { useFacilities } from '@/features/facilities/api'
 import { useCreateProperty, useProperty, useUpdateProperty } from './api'
 import type { AxiosError } from 'axios'
 import type { ValidationErrorResponse } from '@/types/api'
@@ -11,12 +13,14 @@ export default function PropertyFormPage() {
   const navigate = useNavigate()
 
   const { data: existing, isLoading } = useProperty(Number(id))
+  const { data: facilities } = useFacilities()
   const createMutation = useCreateProperty()
   const updateMutation = useUpdateProperty(Number(id))
 
   const [name, setName] = useState('')
   const [address, setAddress] = useState('')
   const [description, setDescription] = useState('')
+  const [facilityIds, setFacilityIds] = useState<number[]>([])
   const [errors, setErrors] = useState<Record<string, string[]>>({})
   const [initialized, setInitialized] = useState(false)
 
@@ -24,6 +28,7 @@ export default function PropertyFormPage() {
     setName(existing.name)
     setAddress(existing.address)
     setDescription(existing.description || '')
+    setFacilityIds(existing.facilities?.map((facility) => facility.id) ?? [])
     setInitialized(true)
   }
 
@@ -42,9 +47,9 @@ export default function PropertyFormPage() {
 
     try {
       if (isEdit) {
-        await updateMutation.mutateAsync({ name, address, description: description || null })
+        await updateMutation.mutateAsync({ name, address, description: description || null, facility_ids: facilityIds })
       } else {
-        await createMutation.mutateAsync({ name, address, description: description || undefined })
+        await createMutation.mutateAsync({ name, address, description: description || undefined, facility_ids: facilityIds })
       }
       navigate('/properties')
     } catch (err) {
@@ -62,7 +67,7 @@ export default function PropertyFormPage() {
       <PageHeader
         eyebrow="Property"
         title={isEdit ? 'Edit Property' : 'Create Property'}
-        description={isEdit ? 'Update property details used across units, bookings and operations.' : 'Create a property before adding units and managing bookings.'}
+        description={isEdit ? 'Update property details, facilities and operational profile.' : 'Create a property before adding units and managing bookings.'}
         backTo="/properties"
         backLabel="Back to Properties"
       />
@@ -79,6 +84,10 @@ export default function PropertyFormPage() {
 
           <Field label="Description" htmlFor="description" error={errors.description?.[0]}>
             <TextArea id="description" value={description} onChange={(e) => setDescription(e.target.value)} maxLength={1000} />
+          </Field>
+
+          <Field label="Facilities" htmlFor="facilities" error={errors.facility_ids?.[0]}>
+            <FacilitySelector facilities={facilities} selectedIds={facilityIds} onChange={setFacilityIds} scope="property" />
           </Field>
 
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>

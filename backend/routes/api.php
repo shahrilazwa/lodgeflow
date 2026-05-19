@@ -5,6 +5,7 @@ use App\Modules\Booking\Controllers\BookingController;
 use App\Modules\CleaningTask\Controllers\CleaningTaskController;
 use App\Modules\Dashboard\Controllers\DashboardController;
 use App\Modules\Expense\Controllers\ExpenseController;
+use App\Modules\Facility\Controllers\FacilityController;
 use App\Modules\Guest\Controllers\GuestController;
 use App\Modules\MaintenanceTask\Controllers\MaintenanceTaskController;
 use App\Modules\Payment\Controllers\PaymentController;
@@ -49,6 +50,9 @@ Route::prefix('auth')->group(function () {
 */
 
 Route::middleware('auth:sanctum')->group(function () {
+    // Facilities
+    Route::get('/facilities', [FacilityController::class, 'index']);
+
     // Properties
     Route::get('/properties', [PropertyController::class, 'index']);
     Route::post('/properties', [PropertyController::class, 'store']);

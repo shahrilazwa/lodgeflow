@@ -21,6 +21,8 @@ class UpdatePropertyRequest extends FormRequest
             'name' => ['sometimes', 'required', 'string', 'max:100'],
             'address' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
+            'facility_ids' => ['nullable', 'array'],
+            'facility_ids.*' => ['integer', 'exists:facilities,id'],
         ];
     }
 }

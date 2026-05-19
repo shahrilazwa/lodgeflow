@@ -3,11 +3,13 @@
 namespace App\Modules\Property\Models;
 
 use App\Models\Owner;
+use App\Modules\Facility\Models\Facility;
 use App\Modules\Unit\Models\Unit;
 use Database\Factories\PropertyFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Property extends Model
@@ -46,5 +48,10 @@ class Property extends Model
     public function units(): HasMany
     {
         return $this->hasMany(Unit::class);
+    }
+
+    public function facilities(): BelongsToMany
+    {
+        return $this->belongsToMany(Facility::class, 'property_facility');
     }
 }

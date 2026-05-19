@@ -13,6 +13,7 @@ class PropertyService
     public function listForOwner(int $ownerId): Collection
     {
         return Property::where('owner_id', $ownerId)
+            ->with('facilities')
             ->orderBy('created_at', 'desc')
             ->get();
     }
@@ -29,7 +30,11 @@ class PropertyService
             'description' => $data['description'] ?? null,
         ]);
 
-        return $property->fresh();
+        if (array_key_exists('facility_ids', $data)) {
+            $property->facilities()->sync($data['facility_ids'] ?? []);
+        }
+
+        return $property->fresh(['facilities']);
     }
 
     /**
@@ -40,6 +45,7 @@ class PropertyService
     {
         return Property::where('id', $propertyId)
             ->where('owner_id', $ownerId)
+            ->with('facilities')
             ->first();
     }
 
@@ -54,7 +60,11 @@ class PropertyService
             'description' => array_key_exists('description', $data) ? $data['description'] : $property->description,
         ]);
 
-        return $property->fresh();
+        if (array_key_exists('facility_ids', $data)) {
+            $property->facilities()->sync($data['facility_ids'] ?? []);
+        }
+
+        return $property->fresh(['facilities']);
     }
 
     /**
@@ -72,7 +82,7 @@ class PropertyService
     {
         $property->update(['is_active' => false]);
 
-        return $property->fresh();
+        return $property->fresh(['facilities']);
     }
 
     /**
@@ -82,6 +92,6 @@ class PropertyService
     {
         $property->update(['is_active' => true]);
 
-        return $property->fresh();
+        return $property->fresh(['facilities']);
     }
 }

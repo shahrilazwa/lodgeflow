@@ -34,7 +34,7 @@ export default function UnitDetailPage() {
       <PageHeader
         eyebrow="Unit"
         title={unit.name}
-        description="Review unit information used for booking and operations."
+        description="Review unit information, facilities and pricing used for booking and operations."
         backTo={backPath}
         backLabel="Back to Units"
         meta={<StatusBadge tone={unit.is_active ? 'success' : 'danger'}>{unit.is_active ? 'Active' : 'Inactive'}</StatusBadge>}
@@ -46,6 +46,18 @@ export default function UnitDetailPage() {
           <DetailItem label="Type" value={UNIT_TYPE_LABELS[unit.type]} />
           <DetailItem label="Price Per Night" value={unit.price_per_night ? `RM ${Number(unit.price_per_night).toFixed(2)}` : 'Not set'} />
           {unit.description && <DetailItem label="Description" value={unit.description} />}
+          <div>
+            <p style={labelStyle}>Facilities</p>
+            {unit.facilities && unit.facilities.length > 0 ? (
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {unit.facilities.map((facility) => (
+                  <span key={facility.id} style={chipStyle}>{facility.name}</span>
+                ))}
+              </div>
+            ) : (
+              <p style={{ margin: 0, color: '#71717a', fontSize: '0.86rem' }}>No facilities selected.</p>
+            )}
+          </div>
           <DetailItem label="Created" value={new Date(unit.created_at).toLocaleDateString()} />
         </div>
       </ContentCard>
@@ -57,10 +69,13 @@ export default function UnitDetailPage() {
   )
 }
 
+const labelStyle: React.CSSProperties = { margin: '0 0 4px', color: '#71717a', fontSize: '0.78rem', fontWeight: 700 }
+const chipStyle: React.CSSProperties = { display: 'inline-flex', minHeight: '28px', alignItems: 'center', borderRadius: '999px', background: '#eff6ff', color: '#2563eb', fontSize: '0.76rem', fontWeight: 700, padding: '0 10px' }
+
 function DetailItem({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p style={{ margin: '0 0 4px', color: '#71717a', fontSize: '0.78rem', fontWeight: 700 }}>{label}</p>
+      <p style={labelStyle}>{label}</p>
       <p style={{ margin: 0, color: '#18181b', fontSize: '0.9rem', lineHeight: 1.6 }}>{value}</p>
     </div>
   )

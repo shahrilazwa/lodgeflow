@@ -31,7 +31,7 @@ export default function PropertyDetailPage() {
       <PageHeader
         eyebrow="Property"
         title={property.name}
-        description="Review property information and manage its related units."
+        description="Review property information, facilities and related units."
         backTo="/properties"
         backLabel="Back to Properties"
         meta={<StatusBadge tone={property.is_active ? 'success' : 'danger'}>{property.is_active ? 'Active' : 'Inactive'}</StatusBadge>}
@@ -42,6 +42,18 @@ export default function PropertyDetailPage() {
         <div style={{ display: 'grid', gap: '16px' }}>
           <DetailItem label="Address" value={property.address} />
           {property.description && <DetailItem label="Description" value={property.description} />}
+          <div>
+            <p style={labelStyle}>Facilities</p>
+            {property.facilities && property.facilities.length > 0 ? (
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {property.facilities.map((facility) => (
+                  <span key={facility.id} style={chipStyle}>{facility.name}</span>
+                ))}
+              </div>
+            ) : (
+              <p style={{ margin: 0, color: '#71717a', fontSize: '0.86rem' }}>No facilities selected.</p>
+            )}
+          </div>
           <DetailItem label="Created" value={new Date(property.created_at).toLocaleDateString()} />
         </div>
       </ContentCard>
@@ -54,10 +66,13 @@ export default function PropertyDetailPage() {
   )
 }
 
+const labelStyle: React.CSSProperties = { margin: '0 0 4px', color: '#71717a', fontSize: '0.78rem', fontWeight: 700 }
+const chipStyle: React.CSSProperties = { display: 'inline-flex', minHeight: '28px', alignItems: 'center', borderRadius: '999px', background: '#eff6ff', color: '#2563eb', fontSize: '0.76rem', fontWeight: 700, padding: '0 10px' }
+
 function DetailItem({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p style={{ margin: '0 0 4px', color: '#71717a', fontSize: '0.78rem', fontWeight: 700 }}>{label}</p>
+      <p style={labelStyle}>{label}</p>
       <p style={{ margin: 0, color: '#18181b', fontSize: '0.9rem', lineHeight: 1.6 }}>{value}</p>
     </div>
   )
