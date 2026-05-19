@@ -33,6 +33,11 @@ class BookingFactory extends Factory
         ];
     }
 
+    public function pendingCustomerConfirmation(): static
+    {
+        return $this->state(fn () => ['status' => Booking::STATUS_PENDING_CUSTOMER_CONFIRMATION]);
+    }
+
     public function checkedIn(): static
     {
         return $this->state(fn () => ['status' => Booking::STATUS_CHECKED_IN]);
