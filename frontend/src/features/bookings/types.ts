@@ -1,7 +1,8 @@
-export const BOOKING_STATUSES = ['confirmed', 'checked_in', 'checked_out', 'cancelled'] as const
+export const BOOKING_STATUSES = ['pending_customer_confirmation', 'confirmed', 'checked_in', 'checked_out', 'cancelled'] as const
 export type BookingStatus = (typeof BOOKING_STATUSES)[number]
 
 export const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
+  pending_customer_confirmation: 'Pending Customer Confirmation',
   confirmed: 'Confirmed',
   checked_in: 'Checked In',
   checked_out: 'Checked Out',
