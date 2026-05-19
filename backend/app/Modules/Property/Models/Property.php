@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Property extends Model
 {
@@ -53,5 +54,15 @@ class Property extends Model
     public function facilities(): BelongsToMany
     {
         return $this->belongsToMany(Facility::class, 'property_facility');
+    }
+
+    public function photos(): HasMany
+    {
+        return $this->hasMany(PropertyPhoto::class)->orderByDesc('is_cover')->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function coverPhoto(): HasOne
+    {
+        return $this->hasOne(PropertyPhoto::class)->where('is_cover', true);
     }
 }
