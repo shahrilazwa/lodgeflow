@@ -1,5 +1,6 @@
 import { useParams } from 'react-router-dom'
 import { ButtonLink, ContentCard, PageHeader, PageLayout, StatusBadge } from '@/components/ui/Page'
+import FacilityAmenityList from '@/features/facilities/FacilityAmenityList'
 import { useProperty } from './api'
 
 export default function PropertyDetailPage() {
@@ -39,20 +40,12 @@ export default function PropertyDetailPage() {
       />
 
       <ContentCard>
-        <div style={{ display: 'grid', gap: '16px' }}>
+        <div style={{ display: 'grid', gap: '22px' }}>
           <DetailItem label="Address" value={property.address} />
           {property.description && <DetailItem label="Description" value={property.description} />}
           <div>
             <p style={labelStyle}>Facilities</p>
-            {property.facilities && property.facilities.length > 0 ? (
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                {property.facilities.map((facility) => (
-                  <span key={facility.id} style={chipStyle}>{facility.name}</span>
-                ))}
-              </div>
-            ) : (
-              <p style={{ margin: 0, color: '#71717a', fontSize: '0.86rem' }}>No facilities selected.</p>
-            )}
+            <FacilityAmenityList facilities={property.facilities} />
           </div>
           <DetailItem label="Created" value={new Date(property.created_at).toLocaleDateString()} />
         </div>
@@ -66,8 +59,7 @@ export default function PropertyDetailPage() {
   )
 }
 
-const labelStyle: React.CSSProperties = { margin: '0 0 4px', color: '#71717a', fontSize: '0.78rem', fontWeight: 700 }
-const chipStyle: React.CSSProperties = { display: 'inline-flex', minHeight: '28px', alignItems: 'center', borderRadius: '999px', background: '#eff6ff', color: '#2563eb', fontSize: '0.76rem', fontWeight: 700, padding: '0 10px' }
+const labelStyle: React.CSSProperties = { margin: '0 0 10px', color: '#71717a', fontSize: '0.78rem', fontWeight: 700 }
 
 function DetailItem({ label, value }: { label: string; value: string }) {
   return (

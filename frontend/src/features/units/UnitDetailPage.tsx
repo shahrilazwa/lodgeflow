@@ -1,5 +1,6 @@
 import { useParams } from 'react-router-dom'
 import { ButtonLink, ContentCard, PageHeader, PageLayout, StatusBadge } from '@/components/ui/Page'
+import FacilityAmenityList from '@/features/facilities/FacilityAmenityList'
 import { useUnit } from './api'
 import { BED_TYPE_LABELS, UNIT_TYPE_LABELS } from './types'
 
@@ -43,7 +44,7 @@ export default function UnitDetailPage() {
       />
 
       <ContentCard>
-        <div style={{ display: 'grid', gap: '16px' }}>
+        <div style={{ display: 'grid', gap: '22px' }}>
           <DetailItem label="Type" value={UNIT_TYPE_LABELS[unit.type]} />
           <DetailItem label="Price Per Night" value={unit.price_per_night ? `RM ${Number(unit.price_per_night).toFixed(2)}` : 'Not set'} />
           <DetailItem label="Max Occupancy" value={unit.max_occupancy ? `${unit.max_occupancy} guest${unit.max_occupancy === 1 ? '' : 's'} (${unit.occupancy_source})` : 'Not set'} />
@@ -66,15 +67,7 @@ export default function UnitDetailPage() {
           </div>
           <div>
             <p style={labelStyle}>Facilities</p>
-            {unit.facilities && unit.facilities.length > 0 ? (
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                {unit.facilities.map((facility) => (
-                  <span key={facility.id} style={chipStyle}>{facility.name}</span>
-                ))}
-              </div>
-            ) : (
-              <p style={{ margin: 0, color: '#71717a', fontSize: '0.86rem' }}>No facilities selected.</p>
-            )}
+            <FacilityAmenityList facilities={unit.facilities} />
           </div>
           <DetailItem label="Created" value={new Date(unit.created_at).toLocaleDateString()} />
         </div>
@@ -87,8 +80,7 @@ export default function UnitDetailPage() {
   )
 }
 
-const labelStyle: React.CSSProperties = { margin: '0 0 4px', color: '#71717a', fontSize: '0.78rem', fontWeight: 700 }
-const chipStyle: React.CSSProperties = { display: 'inline-flex', minHeight: '28px', alignItems: 'center', borderRadius: '999px', background: '#eff6ff', color: '#2563eb', fontSize: '0.76rem', fontWeight: 700, padding: '0 10px' }
+const labelStyle: React.CSSProperties = { margin: '0 0 10px', color: '#71717a', fontSize: '0.78rem', fontWeight: 700 }
 
 function DetailItem({ label, value }: { label: string; value: string }) {
   return (
