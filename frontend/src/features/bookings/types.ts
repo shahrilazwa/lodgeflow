@@ -44,6 +44,8 @@ export interface Booking {
   status: BookingStatus
   payment_status: PaymentStatus
   net_paid_amount: string
+  allow_customer_cancellation: boolean
+  allow_customer_modification: boolean
   unit?: BookingUnit
   guest?: BookingGuest
   created_at: string
@@ -56,12 +58,16 @@ export interface CreateBookingData {
   check_in_date: string
   check_out_date: string
   total_amount: number
+  allow_customer_cancellation?: boolean
+  allow_customer_modification?: boolean
 }
 
 export interface UpdateBookingData {
   check_in_date?: string
   check_out_date?: string
   total_amount?: number
+  allow_customer_cancellation?: boolean
+  allow_customer_modification?: boolean
 }
 
 export interface BookingFilters {
