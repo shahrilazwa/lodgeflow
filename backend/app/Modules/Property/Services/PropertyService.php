@@ -13,7 +13,7 @@ class PropertyService
     public function listForOwner(int $ownerId): Collection
     {
         return Property::where('owner_id', $ownerId)
-            ->with('facilities')
+            ->with(['facilities', 'coverPhoto'])
             ->orderBy('created_at', 'desc')
             ->get();
     }
@@ -34,7 +34,7 @@ class PropertyService
             $property->facilities()->sync($data['facility_ids'] ?? []);
         }
 
-        return $property->fresh(['facilities']);
+        return $property->fresh(['facilities', 'photos', 'coverPhoto']);
     }
 
     /**
@@ -45,7 +45,7 @@ class PropertyService
     {
         return Property::where('id', $propertyId)
             ->where('owner_id', $ownerId)
-            ->with('facilities')
+            ->with(['facilities', 'photos', 'coverPhoto'])
             ->first();
     }
 
@@ -64,7 +64,7 @@ class PropertyService
             $property->facilities()->sync($data['facility_ids'] ?? []);
         }
 
-        return $property->fresh(['facilities']);
+        return $property->fresh(['facilities', 'photos', 'coverPhoto']);
     }
 
     /**
@@ -82,7 +82,7 @@ class PropertyService
     {
         $property->update(['is_active' => false]);
 
-        return $property->fresh(['facilities']);
+        return $property->fresh(['facilities', 'photos', 'coverPhoto']);
     }
 
     /**
@@ -92,6 +92,6 @@ class PropertyService
     {
         $property->update(['is_active' => true]);
 
-        return $property->fresh(['facilities']);
+        return $property->fresh(['facilities', 'photos', 'coverPhoto']);
     }
 }
