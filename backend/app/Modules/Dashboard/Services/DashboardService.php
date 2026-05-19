@@ -67,6 +67,92 @@ class DashboardService
     }
 
     /**
+     * Get the booking queue for near-term front desk work.
+     */
+    public function getBookingQueue(int $ownerId): array
+    {
+        $today = Carbon::today();
+        $tomorrow = Carbon::today()->addDay();
+
+        $upcomingCheckIns = Booking::where('owner_id', $ownerId)
+            ->where('status', Booking::STATUS_CONFIRMED)
+            ->whereDate('check_in_date', '>=', $today->toDateString())
+            ->whereDate('check_in_date', '<=', $tomorrow->toDateString())
+            ->with(['guest', 'unit'])
+            ->orderBy('check_in_date')
+            ->limit(8)
+            ->get()
+            ->map(fn (Booking $booking) => $this->formatBookingQueueItem($booking, 'check_in', 'Check-in'))
+            ->values()
+            ->all();
+
+        $upcomingCheckOuts = Booking::where('owner_id', $ownerId)
+            ->where('status', Booking::STATUS_CHECKED_IN)
+            ->whereDate('check_out_date', '>=', $today->toDateString())
+            ->whereDate('check_out_date', '<=', $tomorrow->toDateString())
+            ->with(['guest', 'unit'])
+            ->orderBy('check_out_date')
+            ->limit(8)
+            ->get()
+            ->map(fn (Booking $booking) => $this->formatBookingQueueItem($booking, 'check_out', 'Check-out'))
+            ->values()
+            ->all();
+
+        $currentlyCheckedIn = Booking::where('owner_id', $ownerId)
+            ->where('status', Booking::STATUS_CHECKED_IN)
+            ->whereDate('check_in_date', '<=', $today->toDateString())
+            ->whereDate('check_out_date', '>', $today->toDateString())
+            ->with(['guest', 'unit'])
+            ->orderBy('check_out_date')
+            ->limit(8)
+            ->get()
+            ->map(fn (Booking $booking) => $this->formatBookingQueueItem($booking, 'in_house', 'In house'))
+            ->values()
+            ->all();
+
+        $paymentAttention = Booking::where('owner_id', $ownerId)
+            ->whereIn('status', [Booking::STATUS_CONFIRMED, Booking::STATUS_CHECKED_IN])
+            ->whereIn('payment_status', ['unpaid', 'partial'])
+            ->with(['guest', 'unit'])
+            ->orderBy('check_in_date')
+            ->limit(8)
+            ->get()
+            ->map(fn (Booking $booking) => $this->formatBookingQueueItem($booking, 'payment_attention', 'Payment attention'))
+            ->values()
+            ->all();
+
+        return [
+            'date' => $today->toDateString(),
+            'window' => 'today_and_tomorrow',
+            'upcoming_check_ins' => $upcomingCheckIns,
+            'upcoming_check_outs' => $upcomingCheckOuts,
+            'currently_checked_in' => $currentlyCheckedIn,
+            'payment_attention' => $paymentAttention,
+        ];
+    }
+
+    /**
+     * Format one booking for the dashboard queue.
+     */
+    private function formatBookingQueueItem(Booking $booking, string $queueType, string $queueLabel): array
+    {
+        return [
+            'id' => $booking->id,
+            'queue_type' => $queueType,
+            'queue_label' => $queueLabel,
+            'guest_name' => $booking->guest?->full_name ?? 'Guest',
+            'unit_name' => $booking->unit?->name ?? 'Unit',
+            'status' => $booking->status,
+            'payment_status' => $booking->payment_status,
+            'check_in_date' => $booking->check_in_date?->toDateString(),
+            'check_out_date' => $booking->check_out_date?->toDateString(),
+            'total_amount' => (float) $booking->total_amount,
+            'net_paid_amount' => (float) $booking->net_paid_amount,
+            'outstanding_amount' => max(0, (float) $booking->total_amount - (float) $booking->net_paid_amount),
+        ];
+    }
+
+    /**
      * Get total income (sum of payment-type amounts) for the current calendar month.
      */
     public function getMonthlyIncome(int $ownerId): float
