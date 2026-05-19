@@ -131,6 +131,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Dashboard
     Route::get('/dashboard/front-desk-overview', [DashboardController::class, 'frontDeskOverview']);
+    Route::get('/dashboard/booking-queue', [DashboardController::class, 'bookingQueue']);
     Route::get('/dashboard/income', [DashboardController::class, 'income']);
     Route::get('/dashboard/expenses', [DashboardController::class, 'expenses']);
     Route::get('/dashboard/net-profit', [DashboardController::class, 'netProfit']);
