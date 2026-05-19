@@ -14,6 +14,16 @@ class DashboardController extends Controller
     ) {}
 
     /**
+     * Today's front desk operating metrics.
+     */
+    public function frontDeskOverview(Request $request): JsonResponse
+    {
+        $overview = $this->dashboardService->getFrontDeskOverview($request->user()->id);
+
+        return response()->json(['data' => $overview]);
+    }
+
+    /**
      * Monthly income total (sum of payment-type amounts for current month).
      */
     public function income(Request $request): JsonResponse

@@ -19,6 +19,7 @@ import {
   useDashboardPendingMaintenance,
 } from './api'
 import DashboardCard from './DashboardCard'
+import FrontDeskOverviewCard from './FrontDeskOverviewCard'
 
 export default function DashboardPage() {
   return (
@@ -29,9 +30,13 @@ export default function DashboardPage() {
         <div>
           <p className="dashboard-eyebrow">Overview</p>
           <h1>Dashboard</h1>
-          <p className="dashboard-description">Monitor income, bookings, balances and operational tasks from one calm workspace.</p>
+          <p className="dashboard-description">Monitor front desk activity, income, bookings, balances and operational tasks from one calm workspace.</p>
         </div>
       </header>
+
+      <section className="dashboard-frontdesk-section" aria-label="Front desk overview">
+        <FrontDeskOverviewCard />
+      </section>
 
       <section className="dashboard-metric-grid" aria-label="Financial summary">
         <IncomeCard />
@@ -55,75 +60,27 @@ export default function DashboardPage() {
 
 function IncomeCard() {
   const { data, isLoading, error } = useDashboardIncome()
-  return (
-    <MetricCard
-      title="Monthly Income"
-      value={`RM ${(data ?? 0).toFixed(2)}`}
-      helper="Collected this month"
-      icon={faMoneyBillTrendUp}
-      tone="blue"
-      isLoading={isLoading}
-      error={error}
-    />
-  )
+  return <MetricCard title="Monthly Income" value={`RM ${(data ?? 0).toFixed(2)}`} helper="Collected this month" icon={faMoneyBillTrendUp} tone="blue" isLoading={isLoading} error={error} />
 }
 
 function ExpensesCard() {
   const { data, isLoading, error } = useDashboardExpenses()
-  return (
-    <MetricCard
-      title="Monthly Expenses"
-      value={`RM ${(data ?? 0).toFixed(2)}`}
-      helper="Recorded this month"
-      icon={faFileInvoiceDollar}
-      tone="neutral"
-      isLoading={isLoading}
-      error={error}
-    />
-  )
+  return <MetricCard title="Monthly Expenses" value={`RM ${(data ?? 0).toFixed(2)}`} helper="Recorded this month" icon={faFileInvoiceDollar} tone="neutral" isLoading={isLoading} error={error} />
 }
 
 function NetProfitCard() {
   const { data, isLoading, error } = useDashboardNetProfit()
   const value = data ?? 0
-  return (
-    <MetricCard
-      title="Net Profit"
-      value={`RM ${value.toFixed(2)}`}
-      helper="Income minus expenses"
-      icon={faChartLine}
-      tone={value >= 0 ? 'green' : 'red'}
-      isLoading={isLoading}
-      error={error}
-    />
-  )
+  return <MetricCard title="Net Profit" value={`RM ${value.toFixed(2)}`} helper="Income minus expenses" icon={faChartLine} tone={value >= 0 ? 'green' : 'red'} isLoading={isLoading} error={error} />
 }
 
 function OutstandingCard() {
   const { data, isLoading, error } = useDashboardOutstanding()
   const value = data ?? 0
-  return (
-    <MetricCard
-      title="Outstanding Balance"
-      value={`RM ${value.toFixed(2)}`}
-      helper="Pending collection"
-      icon={faWallet}
-      tone={value > 0 ? 'orange' : 'green'}
-      isLoading={isLoading}
-      error={error}
-    />
-  )
+  return <MetricCard title="Outstanding Balance" value={`RM ${value.toFixed(2)}`} helper="Pending collection" icon={faWallet} tone={value > 0 ? 'orange' : 'green'} isLoading={isLoading} error={error} />
 }
 
-function MetricCard({
-  title,
-  value,
-  helper,
-  icon,
-  tone,
-  isLoading,
-  error,
-}: {
+function MetricCard({ title, value, helper, icon, tone, isLoading, error }: {
   title: string
   value: string
   helper: string
@@ -165,7 +122,6 @@ function BookingCountsCard() {
           <ProgressRing value={percentage(counts.checkedIn, total)} label="Checked in" count={counts.checkedIn} tone="green" />
           <ProgressRing value={percentage(counts.cancelled, total)} label="Cancelled" count={counts.cancelled} tone="red" />
         </div>
-
         <div className="dashboard-bars" aria-label="Booking status breakdown">
           <ProgressBar label="Confirmed" value={percentage(counts.confirmed, total)} count={counts.confirmed} tone="blue" />
           <ProgressBar label="Checked in" value={percentage(counts.checkedIn, total)} count={counts.checkedIn} tone="green" />
@@ -251,13 +207,8 @@ function ProgressRing({ value, label, count, tone }: { value: number; label: str
 function ProgressBar({ label, value, count, tone }: { label: string; value: number; count: number; tone: string }) {
   return (
     <div className="dashboard-bar-row">
-      <div className="dashboard-bar-meta">
-        <span>{label}</span>
-        <strong>{count}</strong>
-      </div>
-      <div className="dashboard-bar-track">
-        <span className={`dashboard-bar-fill is-${tone}`} style={{ width: `${value}%` }} />
-      </div>
+      <div className="dashboard-bar-meta"><span>{label}</span><strong>{count}</strong></div>
+      <div className="dashboard-bar-track"><span className={`dashboard-bar-fill is-${tone}`} style={{ width: `${value}%` }} /></div>
     </div>
   )
 }
@@ -265,24 +216,14 @@ function ProgressBar({ label, value, count, tone }: { label: string; value: numb
 function OperationStat({ icon, label, value, tone }: { icon: Parameters<typeof FontAwesomeIcon>[0]['icon']; label: string; value: number; tone: string }) {
   return (
     <div className="dashboard-operation-stat">
-      <div className={`dashboard-icon-tile is-${tone}`}>
-        <FontAwesomeIcon icon={icon} aria-hidden="true" />
-      </div>
-      <div>
-        <strong>{value}</strong>
-        <span>{label}</span>
-      </div>
+      <div className={`dashboard-icon-tile is-${tone}`}><FontAwesomeIcon icon={icon} aria-hidden="true" /></div>
+      <div><strong>{value}</strong><span>{label}</span></div>
     </div>
   )
 }
 
 function EmptyState({ icon, message }: { icon: Parameters<typeof FontAwesomeIcon>[0]['icon']; message: string }) {
-  return (
-    <p className="dashboard-empty">
-      <FontAwesomeIcon icon={icon} aria-hidden="true" />
-      <span>{message}</span>
-    </p>
-  )
+  return <p className="dashboard-empty"><FontAwesomeIcon icon={icon} aria-hidden="true" /><span>{message}</span></p>
 }
 
 function percentage(value: number, total: number): number {
@@ -291,11 +232,7 @@ function percentage(value: number, total: number): number {
 }
 
 function priorityTone(priority: string): string {
-  const tones: Record<string, string> = {
-    low: 'is-green',
-    medium: 'is-orange',
-    high: 'is-red',
-  }
+  const tones: Record<string, string> = { low: 'is-green', medium: 'is-orange', high: 'is-red' }
   return tones[priority] ?? 'is-neutral'
 }
 
@@ -305,6 +242,7 @@ const dashboardStyles = `
   .dashboard-eyebrow { margin: 0 0 6px; color: #2563eb; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
   .dashboard-header h1 { margin: 0; color: #18181b; font-size: clamp(1.65rem, 3vw, 2.35rem); font-weight: 800; letter-spacing: -0.035em; }
   .dashboard-description { max-width: 620px; margin: 8px 0 0; color: #71717a; font-size: 0.9rem; line-height: 1.6; }
+  .dashboard-frontdesk-section { margin-bottom: 14px; }
   .dashboard-metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
   .dashboard-insight-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.9fr); gap: 14px; margin-top: 14px; }
   .dashboard-task-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
@@ -312,6 +250,18 @@ const dashboardStyles = `
   .dashboard-card-title { margin: 0 0 14px; color: #71717a; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; }
   .dashboard-card-state, .dashboard-card-error { flex: 1; display: flex; align-items: center; color: #71717a; font-size: 0.85rem; }
   .dashboard-card-error { color: #dc2626; }
+  .dashboard-frontdesk-card { min-height: 0; }
+  .dashboard-frontdesk-layout { display: grid; grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.2fr); gap: 20px; align-items: stretch; }
+  .dashboard-frontdesk-kicker { margin: 0 0 6px; color: #2563eb; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; }
+  .dashboard-frontdesk-layout h2 { margin: 0; color: #18181b; font-size: 1.35rem; letter-spacing: -0.03em; }
+  .dashboard-frontdesk-subtitle { margin: 8px 0 0; color: #71717a; font-size: 0.84rem; line-height: 1.55; }
+  .dashboard-frontdesk-occupancy { margin-top: 18px; display: inline-flex; align-items: baseline; gap: 10px; padding: 12px 14px; border-radius: 14px; background: #f8fafc; }
+  .dashboard-frontdesk-occupancy strong { color: #18181b; font-size: 1.5rem; }
+  .dashboard-frontdesk-occupancy span { color: #2563eb; font-size: 0.78rem; font-weight: 800; }
+  .dashboard-frontdesk-stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; align-items: stretch; }
+  .dashboard-frontdesk-stat { min-height: 132px; padding: 14px; border-radius: 14px; background: #f8fafc; border: 1px solid #f1f5f9; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .dashboard-frontdesk-stat span { display: block; color: #71717a; font-size: 0.74rem; font-weight: 700; line-height: 1.25; min-height: 2.2em; }
+  .dashboard-frontdesk-stat strong { display: block; margin-top: 8px; color: #18181b; font-size: 1.45rem; line-height: 1; }
   .dashboard-metric-body { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
   .dashboard-value { margin: 0; color: #18181b; font-size: clamp(1.35rem, 2.4vw, 1.85rem); line-height: 1.1; font-weight: 800; letter-spacing: -0.03em; }
   .dashboard-value.is-blue { color: #2563eb; }
@@ -356,6 +306,6 @@ const dashboardStyles = `
   .dashboard-list-item:last-child { border-bottom: 0; }
   .dashboard-pill { display: inline-flex; align-items: center; justify-content: center; min-height: 22px; padding: 0 8px; border-radius: 999px; font-size: 0.7rem; font-weight: 700; text-transform: capitalize; white-space: nowrap; }
   .dashboard-empty { margin: 0; display: inline-flex; align-items: center; gap: 8px; color: #71717a; font-size: 0.86rem; }
-  @media (max-width: 1180px) { .dashboard-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .dashboard-insight-grid { grid-template-columns: 1fr; } }
-  @media (max-width: 720px) { .dashboard-metric-grid, .dashboard-task-grid, .dashboard-booking-layout, .dashboard-operations-layout { grid-template-columns: 1fr; } .dashboard-card { padding: 18px; } }
+  @media (max-width: 1180px) { .dashboard-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .dashboard-insight-grid, .dashboard-frontdesk-layout { grid-template-columns: 1fr; } .dashboard-frontdesk-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 720px) { .dashboard-metric-grid, .dashboard-task-grid, .dashboard-booking-layout, .dashboard-operations-layout { grid-template-columns: 1fr; } .dashboard-frontdesk-stats { grid-template-columns: 1fr; } .dashboard-card { padding: 18px; } }
 `

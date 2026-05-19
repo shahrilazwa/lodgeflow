@@ -7,10 +7,65 @@ use App\Modules\CleaningTask\Models\CleaningTask;
 use App\Modules\Expense\Models\Expense;
 use App\Modules\MaintenanceTask\Models\MaintenanceTask;
 use App\Modules\Payment\Models\Payment;
+use App\Modules\Unit\Models\Unit;
 use Illuminate\Support\Carbon;
 
 class DashboardService
 {
+    /**
+     * Get today's front desk operating metrics.
+     */
+    public function getFrontDeskOverview(int $ownerId): array
+    {
+        $today = Carbon::today()->toDateString();
+
+        $activeUnits = Unit::where('owner_id', $ownerId)
+            ->where('is_active', true)
+            ->count();
+
+        $occupiedUnits = Booking::where('owner_id', $ownerId)
+            ->where('status', Booking::STATUS_CHECKED_IN)
+            ->whereDate('check_in_date', '<=', $today)
+            ->whereDate('check_out_date', '>', $today)
+            ->distinct('unit_id')
+            ->count('unit_id');
+
+        $checkInsToday = Booking::where('owner_id', $ownerId)
+            ->whereIn('status', [Booking::STATUS_CONFIRMED, Booking::STATUS_CHECKED_IN])
+            ->whereDate('check_in_date', $today)
+            ->count();
+
+        $checkOutsToday = Booking::where('owner_id', $ownerId)
+            ->whereIn('status', [Booking::STATUS_CHECKED_IN, Booking::STATUS_CHECKED_OUT])
+            ->whereDate('check_out_date', $today)
+            ->count();
+
+        $pendingPayments = Booking::where('owner_id', $ownerId)
+            ->whereIn('payment_status', ['unpaid', 'partial'])
+            ->whereIn('status', [Booking::STATUS_CONFIRMED, Booking::STATUS_CHECKED_IN])
+            ->count();
+
+        $pendingCleaning = CleaningTask::where('owner_id', $ownerId)
+            ->whereIn('status', [CleaningTask::STATUS_PENDING, CleaningTask::STATUS_IN_PROGRESS])
+            ->count();
+
+        $openMaintenance = MaintenanceTask::where('owner_id', $ownerId)
+            ->whereIn('status', [MaintenanceTask::STATUS_OPEN, MaintenanceTask::STATUS_IN_PROGRESS])
+            ->count();
+
+        return [
+            'date' => $today,
+            'active_units' => $activeUnits,
+            'occupied_units' => $occupiedUnits,
+            'occupancy_rate' => $activeUnits > 0 ? round(($occupiedUnits / $activeUnits) * 100) : 0,
+            'check_ins_today' => $checkInsToday,
+            'check_outs_today' => $checkOutsToday,
+            'pending_payments' => $pendingPayments,
+            'pending_cleaning' => $pendingCleaning,
+            'open_maintenance' => $openMaintenance,
+        ];
+    }
+
     /**
      * Get total income (sum of payment-type amounts) for the current calendar month.
      */
