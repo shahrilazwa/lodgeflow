@@ -19,6 +19,8 @@ class StoreBookingRequest extends FormRequest
             'check_in_date' => ['required', 'date'],
             'check_out_date' => ['required', 'date', 'after:check_in_date'],
             'total_amount' => ['required', 'numeric', 'between:0.01,999999999.99'],
+            'allow_customer_cancellation' => ['sometimes', 'boolean'],
+            'allow_customer_modification' => ['sometimes', 'boolean'],
         ];
     }
 
