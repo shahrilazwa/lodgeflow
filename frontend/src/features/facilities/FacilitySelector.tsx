@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faBaby,
@@ -72,16 +72,14 @@ export default function FacilitySelector({ facilities, selectedIds, onChange, sc
   const scopedFacilities = (facilities ?? []).filter((facility) => facility.scope === scope || facility.scope === 'both')
   const selectedFacilities = scopedFacilities.filter((facility) => selectedIds.includes(facility.id))
   const normalizedSearch = search.trim().toLowerCase()
-  const categories = useMemo(() => Array.from(new Set((facilities ?? []).map((facility) => facility.category || 'Other'))).sort(), [facilities])
-  const filteredFacilities = useMemo(() => {
-    if (!normalizedSearch) return scopedFacilities
-
-    return scopedFacilities.filter((facility) => {
+  const categories = Array.from(new Set((facilities ?? []).map((facility) => facility.category || 'Other'))).sort()
+  const filteredFacilities = normalizedSearch
+    ? scopedFacilities.filter((facility) => {
       const name = facility.name.toLowerCase()
       const category = (facility.category || '').toLowerCase()
       return name.includes(normalizedSearch) || category.includes(normalizedSearch)
     })
-  }, [normalizedSearch, scopedFacilities])
+    : scopedFacilities
 
   const grouped = filteredFacilities.reduce<Record<string, Facility[]>>((acc, facility) => {
     const category = facility.category || 'Other'
