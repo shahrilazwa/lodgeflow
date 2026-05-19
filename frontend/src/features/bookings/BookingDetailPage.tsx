@@ -99,6 +99,17 @@ export default function BookingDetailPage() {
         {overpaid > 0 && <Notice tone="info" label="Overpaid" value={`RM ${overpaid.toFixed(2)}`} />}
       </ContentCard>
 
+      <ContentCard>
+        <p style={{ margin: '0 0 10px', color: '#18181b', fontSize: '0.9rem', fontWeight: 800 }}>Customer policy</p>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <PolicyChip allowed={booking.allow_customer_cancellation} label="Customer cancellation" />
+          <PolicyChip allowed={booking.allow_customer_modification} label="Customer modification" />
+        </div>
+        <p style={{ margin: '10px 0 0', color: '#71717a', fontSize: '0.8rem', lineHeight: 1.5 }}>
+          These settings are for future customer-facing confirmation links. Staff can still manage the booking from this dashboard.
+        </p>
+      </ContentCard>
+
       <div style={{ marginTop: '14px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         {booking.status === 'pending_customer_confirmation' && (
           <>
@@ -143,6 +154,14 @@ function Notice({ tone, label, value }: { tone: 'warning' | 'info'; label: strin
     ? { background: '#fffbeb', color: '#b45309' }
     : { background: '#eff6ff', color: '#2563eb' }
   return <div style={{ marginTop: '16px', padding: '10px 12px', borderRadius: '10px', fontSize: '0.86rem', fontWeight: 700, ...style }}>{label}: {value}</div>
+}
+
+function PolicyChip({ allowed, label }: { allowed: boolean; label: string }) {
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', minHeight: '28px', borderRadius: '999px', background: allowed ? '#ecfdf5' : '#f4f4f5', color: allowed ? '#047857' : '#52525b', fontSize: '0.76rem', fontWeight: 800, padding: '0 10px' }}>
+      {label}: {allowed ? 'Allowed' : 'Not allowed'}
+    </span>
+  )
 }
 
 function bookingStatusTone(status: string): Tone {
