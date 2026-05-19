@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useCreateFacility } from './api'
 import type { Facility, FacilityScope } from './types'
 
 interface FacilitySelectorProps {
@@ -11,9 +12,15 @@ interface FacilitySelectorProps {
 export default function FacilitySelector({ facilities, selectedIds, onChange, scope }: FacilitySelectorProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [search, setSearch] = useState('')
+  const [customName, setCustomName] = useState('')
+  const [customCategory, setCustomCategory] = useState('Other')
+  const [customScope, setCustomScope] = useState<FacilityScope>(scope)
+  const [customError, setCustomError] = useState('')
+  const createFacility = useCreateFacility()
   const scopedFacilities = (facilities ?? []).filter((facility) => facility.scope === scope || facility.scope === 'both')
   const selectedFacilities = scopedFacilities.filter((facility) => selectedIds.includes(facility.id))
   const normalizedSearch = search.trim().toLowerCase()
+  const categories = useMemo(() => Array.from(new Set((facilities ?? []).map((facility) => facility.category || 'Other'))).sort(), [facilities])
   const filteredFacilities = useMemo(() => {
     if (!normalizedSearch) return scopedFacilities
 
@@ -38,6 +45,27 @@ export default function FacilitySelector({ facilities, selectedIds, onChange, sc
     }
 
     onChange([...selectedIds, id])
+  }
+
+  async function handleAddCustomFacility() {
+    const name = customName.trim()
+    const category = customCategory.trim() || 'Other'
+    setCustomError('')
+
+    if (!name) {
+      setCustomError('Facility name is required.')
+      return
+    }
+
+    try {
+      const facility = await createFacility.mutateAsync({ name, category, scope: customScope })
+      onChange([...selectedIds, facility.id])
+      setCustomName('')
+      setCustomCategory(category)
+      setSearch(name)
+    } catch {
+      setCustomError('Unable to add this facility. It may already exist.')
+    }
   }
 
   if (!facilities) {
@@ -108,6 +136,27 @@ export default function FacilitySelector({ facilities, selectedIds, onChange, sc
             </div>
 
             <div style={modalBodyStyle}>
+              <section style={customFacilityStyle}>
+                <h3 style={categoryTitleStyle}>Add another facility</h3>
+                <div style={customGridStyle}>
+                  <input value={customName} onChange={(event) => setCustomName(event.target.value)} placeholder="Facility name, e.g. Espresso machine" style={smallInputStyle} />
+                  <input value={customCategory} onChange={(event) => setCustomCategory(event.target.value)} list="facility-categories" placeholder="Category" style={smallInputStyle} />
+                  <datalist id="facility-categories">
+                    {categories.map((category) => <option key={category} value={category} />)}
+                  </datalist>
+                  <select value={customScope} onChange={(event) => setCustomScope(event.target.value as FacilityScope)} style={smallInputStyle}>
+                    <option value={scope}>This {scope} type</option>
+                    <option value="both">Property and unit</option>
+                    <option value="property">Property only</option>
+                    <option value="unit">Unit only</option>
+                  </select>
+                  <button type="button" onClick={handleAddCustomFacility} disabled={createFacility.isPending} style={addButtonStyle}>
+                    {createFacility.isPending ? 'Adding...' : '+ Add'}
+                  </button>
+                </div>
+                {customError && <p style={{ margin: '8px 0 0', color: '#dc2626', fontSize: '0.8rem' }}>{customError}</p>}
+              </section>
+
               {Object.entries(grouped).map(([category, items]) => (
                 <section key={category} style={categorySectionStyle}>
                   <h3 style={categoryTitleStyle}>{category}</h3>
@@ -129,7 +178,7 @@ export default function FacilitySelector({ facilities, selectedIds, onChange, sc
               ))}
 
               {filteredFacilities.length === 0 && (
-                <p style={{ margin: 0, color: '#71717a', fontSize: '0.86rem' }}>No facilities match your search.</p>
+                <p style={{ margin: 0, color: '#71717a', fontSize: '0.86rem' }}>No facilities match your search. Add it above if this is a new facility.</p>
               )}
             </div>
 
@@ -257,6 +306,39 @@ const countBadgeStyle: React.CSSProperties = {
 const modalBodyStyle: React.CSSProperties = {
   overflowY: 'auto',
   padding: '0 28px 18px',
+}
+
+const customFacilityStyle: React.CSSProperties = {
+  borderBottom: '1px solid #e4e4e7',
+  padding: '18px 0 20px',
+}
+
+const customGridStyle: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'minmax(180px, 1.5fr) minmax(140px, 1fr) minmax(140px, 1fr) auto',
+  gap: '8px',
+}
+
+const smallInputStyle: React.CSSProperties = {
+  minHeight: '38px',
+  border: '1px solid #d4d4d8',
+  borderRadius: '10px',
+  background: '#ffffff',
+  color: '#18181b',
+  fontSize: '0.84rem',
+  padding: '0 10px',
+}
+
+const addButtonStyle: React.CSSProperties = {
+  minHeight: '38px',
+  border: '0',
+  borderRadius: '10px',
+  background: '#2563eb',
+  color: '#ffffff',
+  cursor: 'pointer',
+  fontSize: '0.84rem',
+  fontWeight: 900,
+  padding: '0 12px',
 }
 
 const categorySectionStyle: React.CSSProperties = {
