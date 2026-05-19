@@ -87,6 +87,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/bookings/{id}', [BookingController::class, 'show']);
     Route::put('/bookings/{id}', [BookingController::class, 'update']);
     Route::patch('/bookings/{id}', [BookingController::class, 'update']);
+    Route::patch('/bookings/{id}/confirm', [BookingController::class, 'confirm']);
     Route::patch('/bookings/{id}/check-in', [BookingController::class, 'checkIn']);
     Route::patch('/bookings/{id}/check-out', [BookingController::class, 'checkOut']);
     Route::patch('/bookings/{id}/cancel', [BookingController::class, 'cancel']);
