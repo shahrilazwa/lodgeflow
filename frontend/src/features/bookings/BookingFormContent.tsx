@@ -29,8 +29,8 @@ export default function BookingFormContent({ existing }: BookingFormContentProps
 
   const [unitId, setUnitId] = useState(existing ? String(existing.unit_id) : '')
   const [guestId, setGuestId] = useState(existing ? String(existing.guest_id) : '')
-  const [checkInDate, setCheckInDate] = useState(existing?.check_in_date ?? '')
-  const [checkOutDate, setCheckOutDate] = useState(existing?.check_out_date ?? '')
+  const [checkInDate, setCheckInDate] = useState(normalizeDateInput(existing?.check_in_date))
+  const [checkOutDate, setCheckOutDate] = useState(normalizeDateInput(existing?.check_out_date))
   const [totalAmount, setTotalAmount] = useState(existing?.total_amount ?? '')
   const [totalManuallyEdited, setTotalManuallyEdited] = useState(false)
   const [errors, setErrors] = useState<Record<string, string[]>>({})
@@ -175,10 +175,12 @@ export default function BookingFormContent({ existing }: BookingFormContentProps
 }
 
 function calculateNights(checkInDate: string, checkOutDate: string): number {
-  if (!checkInDate || !checkOutDate) return 0
+  const normalizedCheckIn = normalizeDateInput(checkInDate)
+  const normalizedCheckOut = normalizeDateInput(checkOutDate)
+  if (!normalizedCheckIn || !normalizedCheckOut) return 0
 
-  const checkIn = new Date(`${checkInDate}T00:00:00`)
-  const checkOut = new Date(`${checkOutDate}T00:00:00`)
+  const checkIn = new Date(`${normalizedCheckIn}T00:00:00`)
+  const checkOut = new Date(`${normalizedCheckOut}T00:00:00`)
   const diffMs = checkOut.getTime() - checkIn.getTime()
 
   if (diffMs <= 0) return 0
@@ -187,10 +189,19 @@ function calculateNights(checkInDate: string, checkOutDate: string): number {
 }
 
 function getNextDateString(dateString: string): string | undefined {
-  if (!dateString) return undefined
+  const normalizedDate = normalizeDateInput(dateString)
+  if (!normalizedDate) return undefined
 
-  const date = new Date(`${dateString}T00:00:00`)
+  const date = new Date(`${normalizedDate}T00:00:00`)
+  if (Number.isNaN(date.getTime())) return undefined
+
   date.setDate(date.getDate() + 1)
 
   return date.toISOString().slice(0, 10)
+}
+
+function normalizeDateInput(dateString?: string | null): string {
+  if (!dateString) return ''
+
+  return dateString.slice(0, 10)
 }
