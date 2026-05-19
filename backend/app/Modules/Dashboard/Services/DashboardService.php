@@ -5,6 +5,7 @@ namespace App\Modules\Dashboard\Services;
 use App\Modules\Booking\Models\Booking;
 use App\Modules\CleaningTask\Models\CleaningTask;
 use App\Modules\Expense\Models\Expense;
+use App\Modules\Guest\Models\Guest;
 use App\Modules\MaintenanceTask\Models\MaintenanceTask;
 use App\Modules\Payment\Models\Payment;
 use App\Modules\Unit\Models\Unit;
@@ -136,16 +137,19 @@ class DashboardService
      */
     private function formatBookingQueueItem(Booking $booking, string $queueType, string $queueLabel): array
     {
+        $guest = $booking->guest;
+        $unit = $booking->unit;
+
         return [
             'id' => $booking->id,
             'queue_type' => $queueType,
             'queue_label' => $queueLabel,
-            'guest_name' => $booking->guest?->full_name ?? 'Guest',
-            'unit_name' => $booking->unit?->name ?? 'Unit',
+            'guest_name' => $guest instanceof Guest ? $guest->full_name : 'Guest',
+            'unit_name' => $unit instanceof Unit ? $unit->name : 'Unit',
             'status' => $booking->status,
             'payment_status' => $booking->payment_status,
-            'check_in_date' => $booking->check_in_date?->toDateString(),
-            'check_out_date' => $booking->check_out_date?->toDateString(),
+            'check_in_date' => Carbon::parse($booking->check_in_date)->toDateString(),
+            'check_out_date' => Carbon::parse($booking->check_out_date)->toDateString(),
             'total_amount' => (float) $booking->total_amount,
             'net_paid_amount' => (float) $booking->net_paid_amount,
             'outstanding_amount' => max(0, (float) $booking->total_amount - (float) $booking->net_paid_amount),
