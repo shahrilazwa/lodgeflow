@@ -37,6 +37,19 @@ export const BED_TYPE_DEFAULT_CAPACITY: Record<BedType, number> = {
 export const OCCUPANCY_SOURCES = ['calculated', 'manual'] as const
 export type OccupancySource = (typeof OCCUPANCY_SOURCES)[number]
 
+export interface UnitPhoto {
+  id: number
+  owner_id: number
+  unit_id: number
+  path: string
+  url: string
+  caption: string | null
+  sort_order: number
+  is_cover: boolean
+  created_at: string
+  updated_at: string
+}
+
 export interface UnitBed {
   id?: number
   unit_id?: number
@@ -58,6 +71,8 @@ export interface Unit {
   is_active: boolean
   beds?: UnitBed[]
   facilities?: Facility[]
+  photos?: UnitPhoto[]
+  cover_photo?: UnitPhoto | null
   created_at: string
   updated_at: string
 }
