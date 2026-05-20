@@ -68,6 +68,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Property Photos
     Route::get('/properties/{propertyId}/photos', [PropertyPhotoController::class, 'index']);
     Route::post('/properties/{propertyId}/photos', [PropertyPhotoController::class, 'store']);
+    Route::patch('/properties/{propertyId}/photos/{photoId}', [PropertyPhotoController::class, 'update']);
     Route::delete('/properties/{propertyId}/photos/{photoId}', [PropertyPhotoController::class, 'destroy']);
     Route::patch('/properties/{propertyId}/photos/{photoId}/cover', [PropertyPhotoController::class, 'setCover']);
 
