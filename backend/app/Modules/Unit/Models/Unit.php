@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Unit extends Model
 {
@@ -72,5 +73,15 @@ class Unit extends Model
     public function beds(): HasMany
     {
         return $this->hasMany(UnitBed::class);
+    }
+
+    public function photos(): HasMany
+    {
+        return $this->hasMany(UnitPhoto::class)->orderByDesc('is_cover')->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function coverPhoto(): HasOne
+    {
+        return $this->hasOne(UnitPhoto::class)->where('is_cover', true);
     }
 }
