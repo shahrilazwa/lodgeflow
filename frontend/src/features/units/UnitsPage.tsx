@@ -121,33 +121,59 @@ function PropertyUnitsPage({ propertyId }: { propertyId: number }) {
       <div style={{ display: 'grid', gap: '14px' }}>
         {units?.map((unit: Unit) => (
           <ContentCard key={unit.id}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px' }}>
-              <div>
-                <Link to={`/units/${unit.id}`} style={{ textDecoration: 'none', color: '#18181b' }}>
-                  <h2 style={{ margin: '0 0 6px', fontSize: '1rem', fontWeight: 800 }}>{unit.name}</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: unit.cover_photo ? '150px 1fr' : '1fr', gap: '16px', alignItems: 'start' }}>
+              {unit.cover_photo && (
+                <Link to={`/units/${unit.id}`} style={coverLinkStyle}>
+                  <img src={unit.cover_photo.url} alt={`${unit.name} cover`} style={coverImageStyle} />
                 </Link>
-                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-                  <StatusBadge tone="info">{UNIT_TYPE_LABELS[unit.type]}</StatusBadge>
-                  {unit.price_per_night && <StatusBadge tone="neutral">RM {Number(unit.price_per_night).toFixed(2)} / night</StatusBadge>}
-                  {unit.max_occupancy && <StatusBadge tone="neutral">Up to {unit.max_occupancy} guest{unit.max_occupancy === 1 ? '' : 's'}</StatusBadge>}
-                </div>
-                {unit.description && <p style={{ margin: '8px 0 0', color: '#71717a', fontSize: '0.8rem' }}>{unit.description}</p>}
-              </div>
-              <StatusBadge tone={unit.is_active ? 'success' : 'danger'}>{unit.is_active ? 'Active' : 'Inactive'}</StatusBadge>
-            </div>
-
-            <div style={{ marginTop: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <ButtonLink to={`/units/${unit.id}`} size="sm">View</ButtonLink>
-              <ButtonLink to={`/units/${unit.id}/edit`} size="sm">Edit</ButtonLink>
-              {unit.is_active ? (
-                <Button size="sm" variant="danger" onClick={() => deactivate.mutate(unit.id)}>Deactivate</Button>
-              ) : (
-                <Button size="sm" onClick={() => activate.mutate(unit.id)}>Activate</Button>
               )}
+
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px' }}>
+                  <div>
+                    <Link to={`/units/${unit.id}`} style={{ textDecoration: 'none', color: '#18181b' }}>
+                      <h2 style={{ margin: '0 0 6px', fontSize: '1rem', fontWeight: 800 }}>{unit.name}</h2>
+                    </Link>
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                      <StatusBadge tone="info">{UNIT_TYPE_LABELS[unit.type]}</StatusBadge>
+                      {unit.price_per_night && <StatusBadge tone="neutral">RM {Number(unit.price_per_night).toFixed(2)} / night</StatusBadge>}
+                      {unit.max_occupancy && <StatusBadge tone="neutral">Up to {unit.max_occupancy} guest{unit.max_occupancy === 1 ? '' : 's'}</StatusBadge>}
+                    </div>
+                    {unit.description && <p style={{ margin: '8px 0 0', color: '#71717a', fontSize: '0.8rem' }}>{unit.description}</p>}
+                  </div>
+                  <StatusBadge tone={unit.is_active ? 'success' : 'danger'}>{unit.is_active ? 'Active' : 'Inactive'}</StatusBadge>
+                </div>
+
+                <div style={{ marginTop: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <ButtonLink to={`/units/${unit.id}`} size="sm">View</ButtonLink>
+                  <ButtonLink to={`/units/${unit.id}/edit`} size="sm">Edit</ButtonLink>
+                  {unit.is_active ? (
+                    <Button size="sm" variant="danger" onClick={() => deactivate.mutate(unit.id)}>Deactivate</Button>
+                  ) : (
+                    <Button size="sm" onClick={() => activate.mutate(unit.id)}>Activate</Button>
+                  )}
+                </div>
+              </div>
             </div>
           </ContentCard>
         ))}
       </div>
     </PageLayout>
   )
+}
+
+const coverLinkStyle: React.CSSProperties = {
+  display: 'block',
+  width: '150px',
+  height: '110px',
+  borderRadius: '14px',
+  overflow: 'hidden',
+  background: '#f4f4f5',
+}
+
+const coverImageStyle: React.CSSProperties = {
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
+  display: 'block',
 }
