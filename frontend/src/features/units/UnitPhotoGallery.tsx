@@ -1,21 +1,21 @@
 import { useRef, useState } from 'react'
-import { useDeletePropertyPhoto, useSetPropertyPhotoCover, useUpdatePropertyPhoto, useUploadPropertyPhoto } from './api'
-import type { PropertyPhoto } from './types'
+import { useDeleteUnitPhoto, useSetUnitPhotoCover, useUpdateUnitPhoto, useUploadUnitPhoto } from './api'
+import type { UnitPhoto } from './types'
 
-interface PropertyPhotoGalleryProps {
-  propertyId: number
-  photos?: PropertyPhoto[]
+interface UnitPhotoGalleryProps {
+  unitId: number
+  photos?: UnitPhoto[]
 }
 
-export default function PropertyPhotoGallery({ propertyId, photos = [] }: PropertyPhotoGalleryProps) {
+export default function UnitPhotoGallery({ unitId, photos = [] }: UnitPhotoGalleryProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [captionDrafts, setCaptionDrafts] = useState<Record<number, string>>({})
   const [openMenuPhotoId, setOpenMenuPhotoId] = useState<number | null>(null)
   const [error, setError] = useState('')
-  const upload = useUploadPropertyPhoto(propertyId)
-  const updatePhoto = useUpdatePropertyPhoto(propertyId)
-  const remove = useDeletePropertyPhoto(propertyId)
-  const setCover = useSetPropertyPhotoCover(propertyId)
+  const upload = useUploadUnitPhoto(unitId)
+  const updatePhoto = useUpdateUnitPhoto(unitId)
+  const remove = useDeleteUnitPhoto(unitId)
+  const setCover = useSetUnitPhotoCover(unitId)
 
   const cover = photos.find((photo) => photo.is_cover) ?? photos[0]
   const secondary = photos.filter((photo) => photo.id !== cover?.id).slice(0, 4)
@@ -43,7 +43,7 @@ export default function PropertyPhotoGallery({ propertyId, photos = [] }: Proper
     fileInputRef.current?.click()
   }
 
-  function getCaptionDraft(photo: PropertyPhoto) {
+  function getCaptionDraft(photo: UnitPhoto) {
     return captionDrafts[photo.id] ?? photo.caption ?? ''
   }
 
@@ -51,7 +51,7 @@ export default function PropertyPhotoGallery({ propertyId, photos = [] }: Proper
     setCaptionDrafts((drafts) => ({ ...drafts, [photoId]: value }))
   }
 
-  async function saveCaption(photo: PropertyPhoto) {
+  async function saveCaption(photo: UnitPhoto) {
     const nextCaption = getCaptionDraft(photo).trim()
     await updatePhoto.mutateAsync({ photoId: photo.id, caption: nextCaption || null })
     setOpenMenuPhotoId(null)
@@ -76,9 +76,9 @@ export default function PropertyPhotoGallery({ propertyId, photos = [] }: Proper
     <section style={sectionStyle}>
       <div style={headerStyle}>
         <div>
-          <h2 style={{ margin: 0, color: '#18181b', fontSize: '1.05rem', fontWeight: 900 }}>Property photos</h2>
+          <h2 style={{ margin: 0, color: '#18181b', fontSize: '1.05rem', fontWeight: 900 }}>Unit photos</h2>
           <p style={{ margin: '4px 0 0', color: '#71717a', fontSize: '0.84rem' }}>
-            Upload property photos, add captions and choose the cover image.
+            Upload unit photos, add captions and choose the cover image.
           </p>
         </div>
       </div>
@@ -96,7 +96,7 @@ export default function PropertyPhotoGallery({ propertyId, photos = [] }: Proper
 
       {photos.length === 0 ? (
         <button type="button" onClick={openFilePicker} disabled={upload.isPending} style={emptyUploadStyle}>
-          <span style={{ margin: '0 0 8px', color: '#18181b', fontSize: '0.94rem', fontWeight: 900 }}>No property photos yet.</span>
+          <span style={{ margin: '0 0 8px', color: '#18181b', fontSize: '0.94rem', fontWeight: 900 }}>No unit photos yet.</span>
           <span style={{ margin: 0, color: '#71717a', fontSize: '0.84rem', lineHeight: 1.5 }}>
             Upload a cover photo first. You can add captions after upload.
           </span>
@@ -141,14 +141,14 @@ export default function PropertyPhotoGallery({ propertyId, photos = [] }: Proper
 
               return (
                 <div key={photo.id} style={photoListItemStyle}>
-                  <img src={photo.url} alt={photo.caption || 'Property photo'} style={thumbStyle} />
+                  <img src={photo.url} alt={photo.caption || 'Unit photo'} style={thumbStyle} />
                   <div style={{ minWidth: 0, flex: 1 }}>
-                    <p style={{ margin: '0 0 6px', color: '#18181b', fontSize: '0.84rem', fontWeight: 800 }}>{photo.is_cover ? 'Cover photo' : 'Property photo'}</p>
+                    <p style={{ margin: '0 0 6px', color: '#18181b', fontSize: '0.84rem', fontWeight: 800 }}>{photo.is_cover ? 'Cover photo' : 'Unit photo'}</p>
                     <input
                       type="text"
                       value={draft}
                       onChange={(event) => updateCaptionDraft(photo.id, event.target.value)}
-                      placeholder="Add caption, e.g. Front view"
+                      placeholder="Add caption, e.g. Bedroom"
                       maxLength={150}
                       style={listCaptionInputStyle}
                     />
@@ -190,13 +190,13 @@ export default function PropertyPhotoGallery({ propertyId, photos = [] }: Proper
   )
 }
 
-function PhotoTile({ photo, large = false, onDelete, onSetCover, disabled }: { photo: PropertyPhoto; large?: boolean; onDelete: () => void; onSetCover: () => void; disabled: boolean }) {
+function PhotoTile({ photo, large = false, onDelete, onSetCover, disabled }: { photo: UnitPhoto; large?: boolean; onDelete: () => void; onSetCover: () => void; disabled: boolean }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
     <div style={large ? largePhotoWrapStyle : smallPhotoWrapStyle}>
       <div style={large ? largeTileStyle : tileStyle}>
-        <img src={photo.url} alt={photo.caption || 'Property photo'} style={imageStyle} />
+        <img src={photo.url} alt={photo.caption || 'Unit photo'} style={imageStyle} />
         {photo.is_cover && <span style={coverBadgeStyle}>Cover</span>}
         <div style={tileActionMenuWrapStyle}>
           <button

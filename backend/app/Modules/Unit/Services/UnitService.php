@@ -17,7 +17,7 @@ class UnitService
     {
         return Unit::where('property_id', $propertyId)
             ->where('owner_id', $ownerId)
-            ->with(['beds', 'facilities'])
+            ->with(['beds', 'facilities', 'coverPhoto'])
             ->orderBy('name')
             ->get();
     }
@@ -58,7 +58,7 @@ class UnitService
                 $unit->facilities()->sync($data['facility_ids'] ?? []);
             }
 
-            return $unit->fresh(['beds', 'facilities']);
+            return $unit->fresh(['beds', 'facilities', 'photos', 'coverPhoto']);
         });
     }
 
@@ -69,7 +69,7 @@ class UnitService
     {
         return Unit::where('id', $unitId)
             ->where('owner_id', $ownerId)
-            ->with(['beds', 'facilities'])
+            ->with(['beds', 'facilities', 'photos', 'coverPhoto'])
             ->first();
     }
 
@@ -102,7 +102,7 @@ class UnitService
                 $unit->facilities()->sync($data['facility_ids'] ?? []);
             }
 
-            return $unit->fresh(['beds', 'facilities']);
+            return $unit->fresh(['beds', 'facilities', 'photos', 'coverPhoto']);
         });
     }
 
@@ -113,7 +113,7 @@ class UnitService
     {
         $unit->update(['is_active' => false]);
 
-        return $unit->fresh(['beds', 'facilities']);
+        return $unit->fresh(['beds', 'facilities', 'photos', 'coverPhoto']);
     }
 
     /**
@@ -123,7 +123,7 @@ class UnitService
     {
         $unit->update(['is_active' => true]);
 
-        return $unit->fresh(['beds', 'facilities']);
+        return $unit->fresh(['beds', 'facilities', 'photos', 'coverPhoto']);
     }
 
     /**

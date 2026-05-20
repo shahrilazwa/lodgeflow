@@ -13,6 +13,7 @@ use App\Modules\Property\Controllers\PropertyController;
 use App\Modules\Property\Controllers\PropertyPhotoController;
 use App\Modules\ServiceProvider\Controllers\ServiceProviderController;
 use App\Modules\Unit\Controllers\UnitController;
+use App\Modules\Unit\Controllers\UnitPhotoController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -82,6 +83,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/units/{id}', [UnitController::class, 'update']);
     Route::patch('/units/{id}/deactivate', [UnitController::class, 'deactivate']);
     Route::patch('/units/{id}/activate', [UnitController::class, 'activate']);
+
+    // Unit Photos
+    Route::get('/units/{unitId}/photos', [UnitPhotoController::class, 'index']);
+    Route::post('/units/{unitId}/photos', [UnitPhotoController::class, 'store']);
+    Route::patch('/units/{unitId}/photos/{photoId}', [UnitPhotoController::class, 'update']);
+    Route::delete('/units/{unitId}/photos/{photoId}', [UnitPhotoController::class, 'destroy']);
+    Route::patch('/units/{unitId}/photos/{photoId}/cover', [UnitPhotoController::class, 'setCover']);
 
     // Guests
     Route::get('/guests', [GuestController::class, 'index']);
