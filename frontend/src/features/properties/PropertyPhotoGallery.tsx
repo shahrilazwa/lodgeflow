@@ -12,6 +12,7 @@ export default function PropertyPhotoGallery({ propertyId, photos = [] }: Proper
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [caption, setCaption] = useState('')
   const [captionDrafts, setCaptionDrafts] = useState<Record<number, string>>({})
+  const [openMenuPhotoId, setOpenMenuPhotoId] = useState<number | null>(null)
   const [error, setError] = useState('')
   const upload = useUploadPropertyPhoto(propertyId)
   const updatePhoto = useUpdatePropertyPhoto(propertyId)
@@ -57,11 +58,22 @@ export default function PropertyPhotoGallery({ propertyId, photos = [] }: Proper
   async function saveCaption(photo: PropertyPhoto) {
     const nextCaption = getCaptionDraft(photo).trim()
     await updatePhoto.mutateAsync({ photoId: photo.id, caption: nextCaption || null })
+    setOpenMenuPhotoId(null)
     setCaptionDrafts((drafts) => {
       const next = { ...drafts }
       delete next[photo.id]
       return next
     })
+  }
+
+  function handleSetCover(photoId: number) {
+    setOpenMenuPhotoId(null)
+    setCover.mutate(photoId)
+  }
+
+  function handleDelete(photoId: number) {
+    setOpenMenuPhotoId(null)
+    remove.mutate(photoId)
   }
 
   return (
@@ -141,6 +153,8 @@ export default function PropertyPhotoGallery({ propertyId, photos = [] }: Proper
             {photos.map((photo) => {
               const draft = getCaptionDraft(photo)
               const hasChanged = draft !== (photo.caption ?? '')
+              const isMenuOpen = openMenuPhotoId === photo.id
+              const actionsDisabled = updatePhoto.isPending || remove.isPending || setCover.isPending
 
               return (
                 <div key={photo.id} style={photoListItemStyle}>
@@ -156,10 +170,31 @@ export default function PropertyPhotoGallery({ propertyId, photos = [] }: Proper
                       style={listCaptionInputStyle}
                     />
                   </div>
-                  <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                    <Button type="button" size="sm" onClick={() => void saveCaption(photo)} disabled={!hasChanged || updatePhoto.isPending}>Save caption</Button>
-                    {!photo.is_cover && <Button type="button" size="sm" onClick={() => setCover.mutate(photo.id)} disabled={setCover.isPending}>Set cover</Button>}
-                    <Button type="button" size="sm" variant="danger" onClick={() => remove.mutate(photo.id)} disabled={remove.isPending}>Delete</Button>
+                  <div style={actionMenuWrapStyle}>
+                    <button
+                      type="button"
+                      aria-label="Photo actions"
+                      aria-expanded={isMenuOpen}
+                      onClick={() => setOpenMenuPhotoId(isMenuOpen ? null : photo.id)}
+                      style={menuButtonStyle}
+                    >
+                      ☰
+                    </button>
+                    {isMenuOpen && (
+                      <div style={menuPanelStyle}>
+                        <button type="button" onClick={() => void saveCaption(photo)} disabled={!hasChanged || actionsDisabled} style={menuItemStyle}>
+                          Save caption
+                        </button>
+                        {!photo.is_cover && (
+                          <button type="button" onClick={() => handleSetCover(photo.id)} disabled={actionsDisabled} style={menuItemStyle}>
+                            Set cover
+                          </button>
+                        )}
+                        <button type="button" onClick={() => handleDelete(photo.id)} disabled={actionsDisabled} style={dangerMenuItemStyle}>
+                          Delete
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               )
@@ -362,6 +397,7 @@ const photoListStyle: React.CSSProperties = {
 }
 
 const photoListItemStyle: React.CSSProperties = {
+  position: 'relative',
   display: 'flex',
   alignItems: 'center',
   gap: '12px',
@@ -376,4 +412,54 @@ const thumbStyle: React.CSSProperties = {
   borderRadius: '10px',
   objectFit: 'cover',
   background: '#f4f4f5',
+}
+
+const actionMenuWrapStyle: React.CSSProperties = {
+  position: 'relative',
+  marginLeft: 'auto',
+}
+
+const menuButtonStyle: React.CSSProperties = {
+  width: '40px',
+  height: '40px',
+  border: '1px solid #d4d4d8',
+  borderRadius: '999px',
+  background: '#ffffff',
+  color: '#18181b',
+  cursor: 'pointer',
+  fontSize: '1rem',
+  fontWeight: 900,
+}
+
+const menuPanelStyle: React.CSSProperties = {
+  position: 'absolute',
+  top: '46px',
+  right: 0,
+  zIndex: 20,
+  width: '180px',
+  border: '1px solid #e4e4e7',
+  borderRadius: '14px',
+  background: '#ffffff',
+  boxShadow: '0 14px 40px rgba(15, 23, 42, 0.16)',
+  padding: '8px',
+}
+
+const menuItemStyle: React.CSSProperties = {
+  width: '100%',
+  minHeight: '36px',
+  border: '0',
+  borderRadius: '9px',
+  background: '#ffffff',
+  color: '#18181b',
+  cursor: 'pointer',
+  display: 'block',
+  fontSize: '0.82rem',
+  fontWeight: 800,
+  padding: '0 10px',
+  textAlign: 'left',
+}
+
+const dangerMenuItemStyle: React.CSSProperties = {
+  ...menuItemStyle,
+  color: '#dc2626',
 }
