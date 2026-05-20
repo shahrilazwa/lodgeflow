@@ -1,5 +1,4 @@
 import { useRef, useState } from 'react'
-import { Button } from '@/components/ui/Page'
 import { useDeleteUnitPhoto, useSetUnitPhotoCover, useUpdateUnitPhoto, useUploadUnitPhoto } from './api'
 import type { UnitPhoto } from './types'
 
@@ -10,7 +9,6 @@ interface UnitPhotoGalleryProps {
 
 export default function UnitPhotoGallery({ unitId, photos = [] }: UnitPhotoGalleryProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
-  const [caption, setCaption] = useState('')
   const [captionDrafts, setCaptionDrafts] = useState<Record<number, string>>({})
   const [openMenuPhotoId, setOpenMenuPhotoId] = useState<number | null>(null)
   const [error, setError] = useState('')
@@ -33,10 +31,8 @@ export default function UnitPhotoGallery({ unitId, photos = [] }: UnitPhotoGalle
         continue
       }
 
-      await upload.mutateAsync({ file, caption: caption.trim() || undefined })
+      await upload.mutateAsync({ file })
     }
-
-    setCaption('')
 
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
@@ -87,27 +83,14 @@ export default function UnitPhotoGallery({ unitId, photos = [] }: UnitPhotoGalle
         </div>
       </div>
 
-      <div style={uploadPanelStyle}>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          multiple
-          onChange={(event) => void handleFiles(event.target.files)}
-          style={{ display: 'none' }}
-        />
-        <input
-          type="text"
-          value={caption}
-          onChange={(event) => setCaption(event.target.value)}
-          placeholder="Optional caption for new upload, e.g. Bedroom, bathroom, balcony"
-          maxLength={150}
-          style={captionInputStyle}
-        />
-        <Button type="button" size="sm" variant="primary" onClick={openFilePicker} disabled={upload.isPending}>
-          {upload.isPending ? 'Uploading...' : '+ Upload photos'}
-        </Button>
-      </div>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        multiple
+        onChange={(event) => void handleFiles(event.target.files)}
+        style={{ display: 'none' }}
+      />
 
       {error && <p style={{ margin: '12px 0 0', color: '#dc2626', fontSize: '0.82rem' }}>{error}</p>}
 
@@ -115,7 +98,7 @@ export default function UnitPhotoGallery({ unitId, photos = [] }: UnitPhotoGalle
         <button type="button" onClick={openFilePicker} disabled={upload.isPending} style={emptyUploadStyle}>
           <span style={{ margin: '0 0 8px', color: '#18181b', fontSize: '0.94rem', fontWeight: 900 }}>No unit photos yet.</span>
           <span style={{ margin: 0, color: '#71717a', fontSize: '0.84rem', lineHeight: 1.5 }}>
-            Add an optional caption above, then upload a cover photo first.
+            Upload a cover photo first. You can add captions after upload.
           </span>
           <span style={emptyUploadButtonStyle}>{upload.isPending ? 'Uploading...' : '+ Upload photos'}</span>
         </button>
@@ -256,24 +239,6 @@ const headerStyle: React.CSSProperties = {
   justifyContent: 'space-between',
   gap: '14px',
   alignItems: 'flex-start',
-}
-
-const uploadPanelStyle: React.CSSProperties = {
-  marginTop: '14px',
-  display: 'grid',
-  gridTemplateColumns: 'minmax(0, 1fr) auto',
-  gap: '10px',
-  alignItems: 'center',
-}
-
-const captionInputStyle: React.CSSProperties = {
-  minHeight: '38px',
-  border: '1px solid #d4d4d8',
-  borderRadius: '10px',
-  background: '#ffffff',
-  color: '#18181b',
-  fontSize: '0.84rem',
-  padding: '0 12px',
 }
 
 const listCaptionInputStyle: React.CSSProperties = {
