@@ -49,6 +49,34 @@ class PropertyPhotoController extends Controller
         return response()->json(['data' => $photo], 201);
     }
 
+    public function update(Request $request, int $propertyId, int $photoId): JsonResponse
+    {
+        $property = $this->propertyService->findForOwner($propertyId, $request->user()->id);
+
+        if (! $property) {
+            return response()->json(['message' => 'Property not found.'], 404);
+        }
+
+        $photo = PropertyPhoto::where('id', $photoId)
+            ->where('property_id', $property->id)
+            ->where('owner_id', $request->user()->id)
+            ->first();
+
+        if (! $photo) {
+            return response()->json(['message' => 'Photo not found.'], 404);
+        }
+
+        $data = $request->validate([
+            'caption' => ['nullable', 'string', 'max:150'],
+        ]);
+
+        $photo->update([
+            'caption' => $data['caption'] ?? null,
+        ]);
+
+        return response()->json(['data' => $photo->fresh()]);
+    }
+
     public function destroy(Request $request, int $propertyId, int $photoId): JsonResponse
     {
         $property = $this->propertyService->findForOwner($propertyId, $request->user()->id);
