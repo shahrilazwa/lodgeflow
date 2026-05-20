@@ -37,6 +37,10 @@ export default function PropertyPhotoGallery({ propertyId, photos = [] }: Proper
     }
   }
 
+  function openFilePicker() {
+    fileInputRef.current?.click()
+  }
+
   return (
     <section style={sectionStyle}>
       <div style={headerStyle}>
@@ -55,8 +59,8 @@ export default function PropertyPhotoGallery({ propertyId, photos = [] }: Proper
             onChange={(event) => void handleFiles(event.target.files)}
             style={{ display: 'none' }}
           />
-          <Button type="button" size="sm" onClick={() => fileInputRef.current?.click()} disabled={upload.isPending}>
-            {upload.isPending ? 'Uploading...' : 'Upload photos'}
+          <Button type="button" size="sm" variant="primary" onClick={openFilePicker} disabled={upload.isPending}>
+            {upload.isPending ? 'Uploading...' : '+ Upload photos'}
           </Button>
         </div>
       </div>
@@ -64,12 +68,13 @@ export default function PropertyPhotoGallery({ propertyId, photos = [] }: Proper
       {error && <p style={{ margin: '12px 0 0', color: '#dc2626', fontSize: '0.82rem' }}>{error}</p>}
 
       {photos.length === 0 ? (
-        <div style={emptyStateStyle}>
-          <p style={{ margin: '0 0 8px', color: '#18181b', fontSize: '0.94rem', fontWeight: 800 }}>No property photos yet.</p>
-          <p style={{ margin: 0, color: '#71717a', fontSize: '0.84rem', lineHeight: 1.5 }}>
+        <button type="button" onClick={openFilePicker} disabled={upload.isPending} style={emptyUploadStyle}>
+          <span style={{ margin: '0 0 8px', color: '#18181b', fontSize: '0.94rem', fontWeight: 900 }}>No property photos yet.</span>
+          <span style={{ margin: 0, color: '#71717a', fontSize: '0.84rem', lineHeight: 1.5 }}>
             Upload a cover photo first, then add a few supporting photos for the property.
-          </p>
-        </div>
+          </span>
+          <span style={emptyUploadButtonStyle}>{upload.isPending ? 'Uploading...' : '+ Upload photos'}</span>
+        </button>
       ) : (
         <>
           <div style={galleryStyle}>
@@ -93,7 +98,7 @@ export default function PropertyPhotoGallery({ propertyId, photos = [] }: Proper
                 />
               ))}
               {secondary.length < 4 && Array.from({ length: 4 - secondary.length }).map((_, index) => (
-                <button key={`empty-${index}`} type="button" onClick={() => fileInputRef.current?.click()} style={addTileStyle}>
+                <button key={`empty-${index}`} type="button" onClick={openFilePicker} style={addTileStyle}>
                   + Add photo
                 </button>
               ))}
@@ -148,12 +153,32 @@ const headerStyle: React.CSSProperties = {
   alignItems: 'flex-start',
 }
 
-const emptyStateStyle: React.CSSProperties = {
+const emptyUploadStyle: React.CSSProperties = {
+  width: '100%',
   marginTop: '14px',
+  display: 'grid',
+  justifyItems: 'start',
+  gap: '4px',
+  textAlign: 'left',
   border: '1px dashed #d4d4d8',
   borderRadius: '16px',
   background: '#fafafa',
   padding: '28px',
+  cursor: 'pointer',
+}
+
+const emptyUploadButtonStyle: React.CSSProperties = {
+  marginTop: '14px',
+  display: 'inline-flex',
+  minHeight: '38px',
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRadius: '10px',
+  background: '#2563eb',
+  color: '#ffffff',
+  fontSize: '0.86rem',
+  fontWeight: 900,
+  padding: '0 14px',
 }
 
 const galleryStyle: React.CSSProperties = {
