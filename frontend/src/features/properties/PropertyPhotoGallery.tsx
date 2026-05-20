@@ -375,7 +375,7 @@ const coverCaptionStyle: React.CSSProperties = {
   margin: '10px 0 0',
   color: '#18181b',
   fontSize: '0.88rem',
-  fontWeight: 700,
+  fontWeight: 400,
   lineHeight: 1.4,
 }
 
