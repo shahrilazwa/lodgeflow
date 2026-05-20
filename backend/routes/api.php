@@ -10,6 +10,7 @@ use App\Modules\Guest\Controllers\GuestController;
 use App\Modules\MaintenanceTask\Controllers\MaintenanceTaskController;
 use App\Modules\Payment\Controllers\PaymentController;
 use App\Modules\Property\Controllers\PropertyController;
+use App\Modules\Property\Controllers\PropertyPhotoController;
 use App\Modules\ServiceProvider\Controllers\ServiceProviderController;
 use App\Modules\Unit\Controllers\UnitController;
 use Illuminate\Support\Facades\Route;
@@ -63,6 +64,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/properties/{id}', [PropertyController::class, 'destroy']);
     Route::patch('/properties/{id}/deactivate', [PropertyController::class, 'deactivate']);
     Route::patch('/properties/{id}/activate', [PropertyController::class, 'activate']);
+
+    // Property Photos
+    Route::get('/properties/{propertyId}/photos', [PropertyPhotoController::class, 'index']);
+    Route::post('/properties/{propertyId}/photos', [PropertyPhotoController::class, 'store']);
+    Route::patch('/properties/{propertyId}/photos/{photoId}', [PropertyPhotoController::class, 'update']);
+    Route::delete('/properties/{propertyId}/photos/{photoId}', [PropertyPhotoController::class, 'destroy']);
+    Route::patch('/properties/{propertyId}/photos/{photoId}/cover', [PropertyPhotoController::class, 'setCover']);
 
     // Units (nested under properties for creation/listing)
     Route::get('/properties/{propertyId}/units', [UnitController::class, 'index']);

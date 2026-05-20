@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
-import type { CreatePropertyData, Property, UpdatePropertyData } from './types'
+import type { CreatePropertyData, Property, PropertyPhoto, UpdatePropertyData } from './types'
 
 const PROPERTIES_KEY = ['properties']
 
@@ -47,6 +47,7 @@ export function useUpdateProperty(id: number) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PROPERTIES_KEY })
+      queryClient.invalidateQueries({ queryKey: [...PROPERTIES_KEY, id] })
     },
   })
 }
@@ -85,6 +86,73 @@ export function useActivateProperty() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PROPERTIES_KEY })
+    },
+  })
+}
+
+export function useUploadPropertyPhoto(propertyId: number) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload: { file: File; caption?: string }) => {
+      const formData = new FormData()
+      formData.append('photo', payload.file)
+      if (payload.caption) formData.append('caption', payload.caption)
+
+      const { data } = await api.post<{ data: PropertyPhoto }>(`/properties/${propertyId}/photos`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      return data.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PROPERTIES_KEY })
+      queryClient.invalidateQueries({ queryKey: [...PROPERTIES_KEY, propertyId] })
+    },
+  })
+}
+
+export function useUpdatePropertyPhoto(propertyId: number) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload: { photoId: number; caption?: string | null }) => {
+      const { data } = await api.patch<{ data: PropertyPhoto }>(`/properties/${propertyId}/photos/${payload.photoId}`, {
+        caption: payload.caption ?? null,
+      })
+      return data.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PROPERTIES_KEY })
+      queryClient.invalidateQueries({ queryKey: [...PROPERTIES_KEY, propertyId] })
+    },
+  })
+}
+
+export function useDeletePropertyPhoto(propertyId: number) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (photoId: number) => {
+      await api.delete(`/properties/${propertyId}/photos/${photoId}`)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PROPERTIES_KEY })
+      queryClient.invalidateQueries({ queryKey: [...PROPERTIES_KEY, propertyId] })
+    },
+  })
+}
+
+export function useSetPropertyPhotoCover(propertyId: number) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (photoId: number) => {
+      const { data } = await api.patch<{ data: PropertyPhoto }>(`/properties/${propertyId}/photos/${photoId}/cover`)
+      return data.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PROPERTIES_KEY })
+      queryClient.invalidateQueries({ queryKey: [...PROPERTIES_KEY, propertyId] })
     },
   })
 }

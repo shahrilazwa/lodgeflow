@@ -4,6 +4,7 @@ import { Button, ContentCard, Field, PageHeader, PageLayout, TextArea, TextInput
 import FacilitySelector from '@/features/facilities/FacilitySelector'
 import { useFacilities } from '@/features/facilities/api'
 import { useCreateProperty, useProperty, useUpdateProperty } from './api'
+import PropertyPhotoGallery from './PropertyPhotoGallery'
 import type { AxiosError } from 'axios'
 import type { ValidationErrorResponse } from '@/types/api'
 
@@ -34,7 +35,7 @@ export default function PropertyFormPage() {
 
   if (isEdit && isLoading) {
     return (
-      <PageLayout width="narrow">
+      <PageLayout>
         <PageHeader title="Property" description="Loading property form..." backTo="/properties" backLabel="Back to Properties" />
         <ContentCard>Loading...</ContentCard>
       </PageLayout>
@@ -63,14 +64,20 @@ export default function PropertyFormPage() {
   const isPending = createMutation.isPending || updateMutation.isPending
 
   return (
-    <PageLayout width="narrow">
+    <PageLayout>
       <PageHeader
         eyebrow="Property"
         title={isEdit ? 'Edit Property' : 'Create Property'}
-        description={isEdit ? 'Update property details, facilities and operational profile.' : 'Create a property before adding units and managing bookings.'}
+        description={isEdit ? 'Update property details, photos, facilities and operational profile.' : 'Create a property before adding photos, units and bookings.'}
         backTo="/properties"
         backLabel="Back to Properties"
       />
+
+      {isEdit && existing && (
+        <div style={{ marginBottom: '14px' }}>
+          <PropertyPhotoGallery propertyId={existing.id} photos={existing.photos} />
+        </div>
+      )}
 
       <ContentCard>
         <form onSubmit={handleSubmit}>
