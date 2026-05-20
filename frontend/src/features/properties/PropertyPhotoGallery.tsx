@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/Page'
-import { useDeletePropertyPhoto, useSetPropertyPhotoCover, useUploadPropertyPhoto } from './api'
+import { useDeletePropertyPhoto, useSetPropertyPhotoCover, useUpdatePropertyPhoto, useUploadPropertyPhoto } from './api'
 import type { PropertyPhoto } from './types'
 
 interface PropertyPhotoGalleryProps {
@@ -11,8 +11,10 @@ interface PropertyPhotoGalleryProps {
 export default function PropertyPhotoGallery({ propertyId, photos = [] }: PropertyPhotoGalleryProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [caption, setCaption] = useState('')
+  const [captionDrafts, setCaptionDrafts] = useState<Record<number, string>>({})
   const [error, setError] = useState('')
   const upload = useUploadPropertyPhoto(propertyId)
+  const updatePhoto = useUpdatePropertyPhoto(propertyId)
   const remove = useDeletePropertyPhoto(propertyId)
   const setCover = useSetPropertyPhotoCover(propertyId)
 
@@ -44,13 +46,31 @@ export default function PropertyPhotoGallery({ propertyId, photos = [] }: Proper
     fileInputRef.current?.click()
   }
 
+  function getCaptionDraft(photo: PropertyPhoto) {
+    return captionDrafts[photo.id] ?? photo.caption ?? ''
+  }
+
+  function updateCaptionDraft(photoId: number, value: string) {
+    setCaptionDrafts((drafts) => ({ ...drafts, [photoId]: value }))
+  }
+
+  async function saveCaption(photo: PropertyPhoto) {
+    const nextCaption = getCaptionDraft(photo).trim()
+    await updatePhoto.mutateAsync({ photoId: photo.id, caption: nextCaption || null })
+    setCaptionDrafts((drafts) => {
+      const next = { ...drafts }
+      delete next[photo.id]
+      return next
+    })
+  }
+
   return (
     <section style={sectionStyle}>
       <div style={headerStyle}>
         <div>
           <h2 style={{ margin: 0, color: '#18181b', fontSize: '1.05rem', fontWeight: 900 }}>Property photos</h2>
           <p style={{ margin: '4px 0 0', color: '#71717a', fontSize: '0.84rem' }}>
-            Upload property photos, add a short caption and choose the cover image.
+            Upload property photos, add captions and choose the cover image.
           </p>
         </div>
       </div>
@@ -68,7 +88,7 @@ export default function PropertyPhotoGallery({ propertyId, photos = [] }: Proper
           type="text"
           value={caption}
           onChange={(event) => setCaption(event.target.value)}
-          placeholder="Optional caption, e.g. Front view, kitchen, master bedroom"
+          placeholder="Optional caption for new upload, e.g. Front view, kitchen, master bedroom"
           maxLength={150}
           style={captionInputStyle}
         />
@@ -118,19 +138,32 @@ export default function PropertyPhotoGallery({ propertyId, photos = [] }: Proper
           </div>
 
           <div style={photoListStyle}>
-            {photos.map((photo) => (
-              <div key={photo.id} style={photoListItemStyle}>
-                <img src={photo.url} alt={photo.caption || 'Property photo'} style={thumbStyle} />
-                <div style={{ minWidth: 0 }}>
-                  <p style={{ margin: 0, color: '#18181b', fontSize: '0.84rem', fontWeight: 800 }}>{photo.is_cover ? 'Cover photo' : 'Property photo'}</p>
-                  <p style={{ margin: '3px 0 0', color: '#71717a', fontSize: '0.76rem' }}>{photo.caption || 'No caption'}</p>
+            {photos.map((photo) => {
+              const draft = getCaptionDraft(photo)
+              const hasChanged = draft !== (photo.caption ?? '')
+
+              return (
+                <div key={photo.id} style={photoListItemStyle}>
+                  <img src={photo.url} alt={photo.caption || 'Property photo'} style={thumbStyle} />
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <p style={{ margin: '0 0 6px', color: '#18181b', fontSize: '0.84rem', fontWeight: 800 }}>{photo.is_cover ? 'Cover photo' : 'Property photo'}</p>
+                    <input
+                      type="text"
+                      value={draft}
+                      onChange={(event) => updateCaptionDraft(photo.id, event.target.value)}
+                      placeholder="Add caption, e.g. Front view"
+                      maxLength={150}
+                      style={listCaptionInputStyle}
+                    />
+                  </div>
+                  <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                    <Button type="button" size="sm" onClick={() => void saveCaption(photo)} disabled={!hasChanged || updatePhoto.isPending}>Save caption</Button>
+                    {!photo.is_cover && <Button type="button" size="sm" onClick={() => setCover.mutate(photo.id)} disabled={setCover.isPending}>Set cover</Button>}
+                    <Button type="button" size="sm" variant="danger" onClick={() => remove.mutate(photo.id)} disabled={remove.isPending}>Delete</Button>
+                  </div>
                 </div>
-                <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                  {!photo.is_cover && <Button type="button" size="sm" onClick={() => setCover.mutate(photo.id)} disabled={setCover.isPending}>Set cover</Button>}
-                  <Button type="button" size="sm" variant="danger" onClick={() => remove.mutate(photo.id)} disabled={remove.isPending}>Delete</Button>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </>
       )}
@@ -182,6 +215,17 @@ const captionInputStyle: React.CSSProperties = {
   color: '#18181b',
   fontSize: '0.84rem',
   padding: '0 12px',
+}
+
+const listCaptionInputStyle: React.CSSProperties = {
+  width: '100%',
+  minHeight: '36px',
+  border: '1px solid #d4d4d8',
+  borderRadius: '10px',
+  background: '#ffffff',
+  color: '#18181b',
+  fontSize: '0.82rem',
+  padding: '0 10px',
 }
 
 const emptyUploadStyle: React.CSSProperties = {
