@@ -39,6 +39,7 @@ export default function PropertiesPage() {
   return (
     <PageLayout>
       <PageHeader
+        eyebrow="Properties"
         title="Properties"
         description="Manage your accommodation locations before setting up units, bookings and operations."
         action={<ButtonLink to="/properties/create" variant="primary">+ New Property</ButtonLink>}
