@@ -10,6 +10,7 @@ interface PropertyPhotoGalleryProps {
 
 export default function PropertyPhotoGallery({ propertyId, photos = [] }: PropertyPhotoGalleryProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [caption, setCaption] = useState('')
   const [error, setError] = useState('')
   const upload = useUploadPropertyPhoto(propertyId)
   const remove = useDeletePropertyPhoto(propertyId)
@@ -29,8 +30,10 @@ export default function PropertyPhotoGallery({ propertyId, photos = [] }: Proper
         continue
       }
 
-      await upload.mutateAsync({ file })
+      await upload.mutateAsync({ file, caption: caption.trim() || undefined })
     }
+
+    setCaption('')
 
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
@@ -47,22 +50,31 @@ export default function PropertyPhotoGallery({ propertyId, photos = [] }: Proper
         <div>
           <h2 style={{ margin: 0, color: '#18181b', fontSize: '1.05rem', fontWeight: 900 }}>Property photos</h2>
           <p style={{ margin: '4px 0 0', color: '#71717a', fontSize: '0.84rem' }}>
-            Use photos to identify this property and prepare richer listing profiles.
+            Upload property photos, add a short caption and choose the cover image.
           </p>
         </div>
-        <div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            multiple
-            onChange={(event) => void handleFiles(event.target.files)}
-            style={{ display: 'none' }}
-          />
-          <Button type="button" size="sm" variant="primary" onClick={openFilePicker} disabled={upload.isPending}>
-            {upload.isPending ? 'Uploading...' : '+ Upload photos'}
-          </Button>
-        </div>
+      </div>
+
+      <div style={uploadPanelStyle}>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          multiple
+          onChange={(event) => void handleFiles(event.target.files)}
+          style={{ display: 'none' }}
+        />
+        <input
+          type="text"
+          value={caption}
+          onChange={(event) => setCaption(event.target.value)}
+          placeholder="Optional caption, e.g. Front view, kitchen, master bedroom"
+          maxLength={150}
+          style={captionInputStyle}
+        />
+        <Button type="button" size="sm" variant="primary" onClick={openFilePicker} disabled={upload.isPending}>
+          {upload.isPending ? 'Uploading...' : '+ Upload photos'}
+        </Button>
       </div>
 
       {error && <p style={{ margin: '12px 0 0', color: '#dc2626', fontSize: '0.82rem' }}>{error}</p>}
@@ -71,7 +83,7 @@ export default function PropertyPhotoGallery({ propertyId, photos = [] }: Proper
         <button type="button" onClick={openFilePicker} disabled={upload.isPending} style={emptyUploadStyle}>
           <span style={{ margin: '0 0 8px', color: '#18181b', fontSize: '0.94rem', fontWeight: 900 }}>No property photos yet.</span>
           <span style={{ margin: 0, color: '#71717a', fontSize: '0.84rem', lineHeight: 1.5 }}>
-            Upload a cover photo first, then add a few supporting photos for the property.
+            Add an optional caption above, then upload a cover photo first.
           </span>
           <span style={emptyUploadButtonStyle}>{upload.isPending ? 'Uploading...' : '+ Upload photos'}</span>
         </button>
@@ -131,6 +143,7 @@ function PhotoTile({ photo, large = false, onDelete, onSetCover, disabled }: { p
     <div style={large ? largeTileStyle : tileStyle}>
       <img src={photo.url} alt={photo.caption || 'Property photo'} style={imageStyle} />
       {photo.is_cover && <span style={coverBadgeStyle}>Cover</span>}
+      {photo.caption && <span style={captionBadgeStyle}>{photo.caption}</span>}
       <div style={tileActionsStyle}>
         {!photo.is_cover && <button type="button" onClick={onSetCover} disabled={disabled} style={tileButtonStyle}>Set cover</button>}
         <button type="button" onClick={onDelete} disabled={disabled} style={dangerTileButtonStyle}>Delete</button>
@@ -151,6 +164,24 @@ const headerStyle: React.CSSProperties = {
   justifyContent: 'space-between',
   gap: '14px',
   alignItems: 'flex-start',
+}
+
+const uploadPanelStyle: React.CSSProperties = {
+  marginTop: '14px',
+  display: 'grid',
+  gridTemplateColumns: 'minmax(0, 1fr) auto',
+  gap: '10px',
+  alignItems: 'center',
+}
+
+const captionInputStyle: React.CSSProperties = {
+  minHeight: '38px',
+  border: '1px solid #d4d4d8',
+  borderRadius: '10px',
+  background: '#ffffff',
+  color: '#18181b',
+  fontSize: '0.84rem',
+  padding: '0 12px',
 }
 
 const emptyUploadStyle: React.CSSProperties = {
@@ -226,6 +257,22 @@ const coverBadgeStyle: React.CSSProperties = {
   fontSize: '0.72rem',
   fontWeight: 900,
   padding: '5px 9px',
+}
+
+const captionBadgeStyle: React.CSSProperties = {
+  position: 'absolute',
+  left: '12px',
+  bottom: '12px',
+  maxWidth: 'calc(100% - 24px)',
+  borderRadius: '999px',
+  background: 'rgba(255,255,255,0.94)',
+  color: '#18181b',
+  fontSize: '0.72rem',
+  fontWeight: 800,
+  padding: '5px 9px',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
 }
 
 const tileActionsStyle: React.CSSProperties = {
