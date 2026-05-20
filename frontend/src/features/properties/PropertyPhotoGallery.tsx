@@ -175,6 +175,7 @@ export default function PropertyPhotoGallery({ propertyId, photos = [] }: Proper
                       type="button"
                       aria-label="Photo actions"
                       aria-expanded={isMenuOpen}
+                      title="Photo actions"
                       onClick={() => setOpenMenuPhotoId(isMenuOpen ? null : photo.id)}
                       style={menuButtonStyle}
                     >
@@ -207,15 +208,38 @@ export default function PropertyPhotoGallery({ propertyId, photos = [] }: Proper
 }
 
 function PhotoTile({ photo, large = false, onDelete, onSetCover, disabled }: { photo: PropertyPhoto; large?: boolean; onDelete: () => void; onSetCover: () => void; disabled: boolean }) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+
   return (
-    <div style={large ? largeTileStyle : tileStyle}>
-      <img src={photo.url} alt={photo.caption || 'Property photo'} style={imageStyle} />
-      {photo.is_cover && <span style={coverBadgeStyle}>Cover</span>}
-      {photo.caption && <span style={captionBadgeStyle}>{photo.caption}</span>}
-      <div style={tileActionsStyle}>
-        {!photo.is_cover && <button type="button" onClick={onSetCover} disabled={disabled} style={tileButtonStyle}>Set cover</button>}
-        <button type="button" onClick={onDelete} disabled={disabled} style={dangerTileButtonStyle}>Delete</button>
+    <div style={large ? largePhotoWrapStyle : smallPhotoWrapStyle}>
+      <div style={large ? largeTileStyle : tileStyle}>
+        <img src={photo.url} alt={photo.caption || 'Property photo'} style={imageStyle} />
+        {photo.is_cover && <span style={coverBadgeStyle}>Cover</span>}
+        <div style={tileActionMenuWrapStyle}>
+          <button
+            type="button"
+            aria-label="Photo actions"
+            title="Photo actions"
+            onClick={() => setIsMenuOpen((value) => !value)}
+            style={tileIconButtonStyle}
+          >
+            ⋯
+          </button>
+          {isMenuOpen && (
+            <div style={tileMenuPanelStyle}>
+              {!photo.is_cover && (
+                <button type="button" onClick={onSetCover} disabled={disabled} style={menuItemStyle} title="Set as cover photo">
+                  Set cover
+                </button>
+              )}
+              <button type="button" onClick={onDelete} disabled={disabled} style={dangerMenuItemStyle} title="Delete photo">
+                Delete
+              </button>
+            </div>
+          )}
+        </div>
       </div>
+      {large && photo.caption && <p style={coverCaptionStyle}>{photo.caption}</p>}
     </div>
   )
 }
@@ -296,12 +320,21 @@ const galleryStyle: React.CSSProperties = {
   display: 'grid',
   gridTemplateColumns: 'minmax(0, 1.3fr) minmax(280px, 0.9fr)',
   gap: '8px',
+  alignItems: 'start',
 }
 
 const secondaryGridStyle: React.CSSProperties = {
   display: 'grid',
   gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   gap: '8px',
+}
+
+const largePhotoWrapStyle: React.CSSProperties = {
+  minWidth: 0,
+}
+
+const smallPhotoWrapStyle: React.CSSProperties = {
+  minWidth: 0,
 }
 
 const largeTileStyle: React.CSSProperties = {
@@ -338,46 +371,44 @@ const coverBadgeStyle: React.CSSProperties = {
   padding: '5px 9px',
 }
 
-const captionBadgeStyle: React.CSSProperties = {
-  position: 'absolute',
-  left: '12px',
-  bottom: '12px',
-  maxWidth: 'calc(100% - 24px)',
-  borderRadius: '999px',
-  background: 'rgba(255,255,255,0.94)',
+const coverCaptionStyle: React.CSSProperties = {
+  margin: '10px 0 0',
   color: '#18181b',
-  fontSize: '0.72rem',
-  fontWeight: 800,
-  padding: '5px 9px',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
+  fontSize: '0.88rem',
+  fontWeight: 700,
+  lineHeight: 1.4,
 }
 
-const tileActionsStyle: React.CSSProperties = {
+const tileActionMenuWrapStyle: React.CSSProperties = {
   position: 'absolute',
   right: '10px',
-  bottom: '10px',
-  display: 'flex',
-  gap: '6px',
-  flexWrap: 'wrap',
-  justifyContent: 'flex-end',
+  top: '10px',
 }
 
-const tileButtonStyle: React.CSSProperties = {
+const tileIconButtonStyle: React.CSSProperties = {
+  width: '34px',
+  height: '34px',
   border: '1px solid rgba(255,255,255,0.9)',
   borderRadius: '999px',
   background: 'rgba(255,255,255,0.92)',
   color: '#18181b',
   cursor: 'pointer',
-  fontSize: '0.7rem',
+  fontSize: '1.2rem',
   fontWeight: 900,
-  padding: '6px 9px',
+  lineHeight: 1,
 }
 
-const dangerTileButtonStyle: React.CSSProperties = {
-  ...tileButtonStyle,
-  color: '#dc2626',
+const tileMenuPanelStyle: React.CSSProperties = {
+  position: 'absolute',
+  top: '40px',
+  right: 0,
+  zIndex: 20,
+  width: '150px',
+  border: '1px solid #e4e4e7',
+  borderRadius: '14px',
+  background: '#ffffff',
+  boxShadow: '0 14px 40px rgba(15, 23, 42, 0.16)',
+  padding: '8px',
 }
 
 const addTileStyle: React.CSSProperties = {
