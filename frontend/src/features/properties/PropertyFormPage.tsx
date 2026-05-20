@@ -35,7 +35,7 @@ export default function PropertyFormPage() {
 
   if (isEdit && isLoading) {
     return (
-      <PageLayout width="narrow">
+      <PageLayout>
         <PageHeader title="Property" description="Loading property form..." backTo="/properties" backLabel="Back to Properties" />
         <ContentCard>Loading...</ContentCard>
       </PageLayout>
@@ -64,7 +64,7 @@ export default function PropertyFormPage() {
   const isPending = createMutation.isPending || updateMutation.isPending
 
   return (
-    <PageLayout width="narrow">
+    <PageLayout>
       <PageHeader
         eyebrow="Property"
         title={isEdit ? 'Edit Property' : 'Create Property'}
