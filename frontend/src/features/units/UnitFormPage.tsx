@@ -5,6 +5,7 @@ import FacilitySelector from '@/features/facilities/FacilitySelector'
 import { useFacilities } from '@/features/facilities/api'
 import { useCreateUnit, useUnit, useUpdateUnit } from './api'
 import { BED_TYPES, BED_TYPE_DEFAULT_CAPACITY, BED_TYPE_LABELS, UNIT_TYPES, UNIT_TYPE_LABELS } from './types'
+import UnitPhotoGallery from './UnitPhotoGallery'
 import type { BedType, OccupancySource, UnitBed, UnitType } from './types'
 import type { AxiosError } from 'axios'
 import type { ValidationErrorResponse } from '@/types/api'
@@ -59,7 +60,7 @@ export default function UnitFormPage() {
 
   if (isEdit && isLoading) {
     return (
-      <PageLayout width="narrow">
+      <PageLayout>
         <PageHeader title="Unit" description="Loading unit form..." backTo={backPath} backLabel="Back to Units" />
         <ContentCard>Loading...</ContentCard>
       </PageLayout>
@@ -119,14 +120,20 @@ export default function UnitFormPage() {
   const isPending = createMutation.isPending || updateMutation.isPending
 
   return (
-    <PageLayout width="narrow">
+    <PageLayout>
       <PageHeader
         eyebrow="Unit"
         title={isEdit ? 'Edit Unit' : 'Create Unit'}
-        description={isEdit ? 'Update unit details, type, nightly price, bed setup and facilities.' : 'Create a room, bed, hall or whole-house unit under this property.'}
+        description={isEdit ? 'Update unit details, photos, type, nightly price, bed setup and facilities.' : 'Create a room, bed, hall or whole-house unit under this property.'}
         backTo={backPath}
         backLabel="Back to Units"
       />
+
+      {isEdit && existing && (
+        <div style={{ marginBottom: '14px' }}>
+          <UnitPhotoGallery unitId={existing.id} photos={existing.photos} />
+        </div>
+      )}
 
       <ContentCard>
         <form onSubmit={handleSubmit}>
