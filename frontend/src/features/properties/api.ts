@@ -111,6 +111,23 @@ export function useUploadPropertyPhoto(propertyId: number) {
   })
 }
 
+export function useUpdatePropertyPhoto(propertyId: number) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload: { photoId: number; caption?: string | null }) => {
+      const { data } = await api.patch<{ data: PropertyPhoto }>(`/properties/${propertyId}/photos/${payload.photoId}`, {
+        caption: payload.caption ?? null,
+      })
+      return data.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PROPERTIES_KEY })
+      queryClient.invalidateQueries({ queryKey: [...PROPERTIES_KEY, propertyId] })
+    },
+  })
+}
+
 export function useDeletePropertyPhoto(propertyId: number) {
   const queryClient = useQueryClient()
 
