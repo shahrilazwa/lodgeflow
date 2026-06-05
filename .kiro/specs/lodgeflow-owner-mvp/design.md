@@ -240,6 +240,7 @@ MYDS (Malaysia Government Design System) provides React components via `@govtech
 - Calendar/date-range pickers (if MYDS doesn't provide one, use a compatible library styled with MYDS tokens)
 - Data tables with sorting/filtering (wrap a headless table library with MYDS styling)
 - Booking timeline/calendar view
+- Property photo galleries and amenities display on listing and detail pages
 - Multi-link entity selector for Expenses
 
 **Approach:**
@@ -278,7 +279,21 @@ All tenant-scoped tables include `owner_id` as a foreign key to the `owners` tab
 | name | VARCHAR(100) | NOT NULL |
 | address | VARCHAR(255) | NOT NULL |
 | description | TEXT | NULLABLE (max 1000 chars enforced at app level) |
+| amenities | JSON | NULLABLE (array of strings enforced at app level) |
 | is_active | BOOLEAN | NOT NULL, DEFAULT true |
+| created_at | TIMESTAMP | NOT NULL |
+| updated_at | TIMESTAMP | NOT NULL |
+
+#### property_images
+
+| Column | Type | Constraints |
+|--------|------|-------------|
+| id | BIGINT (PK) | auto-increment |
+| owner_id | BIGINT (FK → owners) | NOT NULL, INDEX |
+| property_id | BIGINT (FK → properties) | NOT NULL, INDEX |
+| url | VARCHAR(255) | NOT NULL |
+| caption | VARCHAR(255) | NULLABLE |
+| is_primary | BOOLEAN | NOT NULL, DEFAULT false |
 | created_at | TIMESTAMP | NOT NULL |
 | updated_at | TIMESTAMP | NOT NULL |
 
@@ -291,6 +306,8 @@ All tenant-scoped tables include `owner_id` as a foreign key to the `owners` tab
 | property_id | BIGINT (FK → properties) | NOT NULL, INDEX |
 | name | VARCHAR(100) | NOT NULL |
 | type | VARCHAR(20) | NOT NULL (enum: room, suite, dormitory_bed, entire_unit) |
+| bed_count | SMALLINT | NOT NULL, DEFAULT 1 |
+| max_occupancy | SMALLINT | NOT NULL, DEFAULT 1 |
 | description | TEXT | NULLABLE (max 500 chars at app level) |
 | is_active | BOOLEAN | NOT NULL, DEFAULT true |
 | created_at | TIMESTAMP | NOT NULL |
@@ -306,7 +323,11 @@ All tenant-scoped tables include `owner_id` as a foreign key to the `owners` tab
 | full_name | VARCHAR(100) | NOT NULL |
 | phone | VARCHAR(15) | NOT NULL |
 | email | VARCHAR(254) | NULLABLE |
+| address | VARCHAR(255) | NULLABLE |
 | identification_number | VARCHAR(50) | NULLABLE |
+| rating | SMALLINT | NULLABLE, CHECK(rating BETWEEN 1 AND 5) |
+| profile_notes | TEXT | NULLABLE (max 1000 chars at app level) |
+| profile_status | VARCHAR(20) | NOT NULL, DEFAULT 'neutral' (enum: neutral, recurring, blacklisted) |
 | created_at | TIMESTAMP | NOT NULL |
 | updated_at | TIMESTAMP | NOT NULL |
 | | | UNIQUE(owner_id, phone) |
@@ -322,7 +343,9 @@ All tenant-scoped tables include `owner_id` as a foreign key to the `owners` tab
 | check_in_date | DATE | NOT NULL |
 | check_out_date | DATE | NOT NULL |
 | total_amount | DECIMAL(12,2) | NOT NULL |
-| status | VARCHAR(20) | NOT NULL (enum: confirmed, checked_in, checked_out, cancelled) |
+| expected_occupancy | SMALLINT | NOT NULL, DEFAULT 1 |
+| special_requests | TEXT | NULLABLE (max 500 chars at app level) |
+| status | VARCHAR(20) | NOT NULL, DEFAULT 'pending' (enum: pending, confirmed, checked_in, checked_out, cancelled) |
 | payment_status | VARCHAR(20) | NOT NULL, DEFAULT 'unpaid' (enum: unpaid, partial, paid, overpaid, refunded) |
 | net_paid_amount | DECIMAL(12,2) | NOT NULL, DEFAULT 0.00 |
 | created_at | TIMESTAMP | NOT NULL |
@@ -377,6 +400,8 @@ All tenant-scoped tables include `owner_id` as a foreign key to the `owners` tab
 | created_at | TIMESTAMP | NOT NULL |
 | updated_at | TIMESTAMP | NOT NULL |
 | | | UNIQUE(owner_id, name) |
+
+*Represents a contractor, vendor, or individual paid directly by the owner. Service provider records are used for expense tracking and maintenance task assignment.*
 
 #### cleaning_tasks
 
@@ -500,9 +525,11 @@ All endpoints are prefixed with `/api/v1` and require authentication (except log
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | /properties | List all owner's properties |
-| POST | /properties | Create a new property |
-| GET | /properties/{id} | Get property details |
-| PUT | /properties/{id} | Update property |
+| POST | /properties | Create a new property (supports amenities and image upload) |
+| GET | /properties/{id} | Get property details, including amenities and image URLs |
+| PUT | /properties/{id} | Update property details, amenities, and images |
+| POST | /properties/{id}/images | Upload a property image |
+| DELETE | /properties/{id}/images/{imageId} | Delete a property image |
 | PATCH | /properties/{id}/deactivate | Deactivate property |
 | PATCH | /properties/{id}/activate | Reactivate property |
 
@@ -511,9 +538,9 @@ All endpoints are prefixed with `/api/v1` and require authentication (except log
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | /properties/{propertyId}/units | List units for a property |
-| POST | /properties/{propertyId}/units | Create a unit under a property |
-| GET | /units/{id} | Get unit details |
-| PUT | /units/{id} | Update unit |
+| POST | /properties/{propertyId}/units | Create a unit under a property (includes bed count and occupancy) |
+| GET | /units/{id} | Get unit details (includes bed count and max occupancy) |
+| PUT | /units/{id} | Update unit details, including bed count and occupancy |
 | PATCH | /units/{id}/deactivate | Deactivate unit |
 | PATCH | /units/{id}/activate | Reactivate unit |
 
@@ -521,7 +548,7 @@ All endpoints are prefixed with `/api/v1` and require authentication (except log
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | /guests | List/search guests |
+| GET | /guests | List/search/filter guests by name, phone, and profile status |
 | POST | /guests | Create guest record |
 | GET | /guests/{id} | Get guest profile with bookings |
 | PUT | /guests/{id} | Update guest |
@@ -530,13 +557,15 @@ All endpoints are prefixed with `/api/v1` and require authentication (except log
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | /bookings | List bookings (filterable) |
-| POST | /bookings | Create booking |
-| GET | /bookings/{id} | Get booking details with payments |
-| PUT | /bookings/{id} | Update booking dates/amount |
+| GET | /bookings | List bookings filterable by status, unit, and check-in date range |
+| POST | /bookings | Create booking (includes expected occupancy, special requests, and guest identity/contact details) |
+| GET | /bookings/{id} | Get booking details with payments, expected occupancy, and special requests |
+| PUT | /bookings/{id} | Update booking dates, amount, occupancy, and requests |
 | PATCH | /bookings/{id}/check-in | Transition to checked_in |
 | PATCH | /bookings/{id}/check-out | Transition to checked_out |
 | PATCH | /bookings/{id}/cancel | Transition to cancelled |
+
+> Note: special requests such as barbeque are captured on the booking and may require manual expense/payment follow-up. MVP does not automatically calculate extra service charges from these requests.
 
 ### Payments
 
@@ -550,7 +579,7 @@ All endpoints are prefixed with `/api/v1` and require authentication (except log
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | /expenses | List expenses (filterable) |
+| GET | /expenses | List expenses filterable by category, date range, property, and unit |
 | POST | /expenses | Create expense |
 | GET | /expenses/{id} | Get expense details |
 | PUT | /expenses/{id} | Update expense |
@@ -570,7 +599,7 @@ All endpoints are prefixed with `/api/v1` and require authentication (except log
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | /cleaning-tasks | List cleaning tasks (filterable) |
+| GET | /cleaning-tasks | List cleaning tasks filterable by status and unit |
 | POST | /cleaning-tasks | Manually create cleaning task |
 | GET | /cleaning-tasks/{id} | Get cleaning task details |
 | PATCH | /cleaning-tasks/{id}/status | Update status (pending→in_progress→completed) |
@@ -580,7 +609,7 @@ All endpoints are prefixed with `/api/v1` and require authentication (except log
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | /maintenance-tasks | List maintenance tasks (filterable) |
+| GET | /maintenance-tasks | List maintenance tasks filterable by status, priority, property, and unit |
 | POST | /maintenance-tasks | Create maintenance task |
 | GET | /maintenance-tasks/{id} | Get maintenance task details |
 | PUT | /maintenance-tasks/{id} | Update maintenance task |
@@ -804,7 +833,7 @@ A Laravel Global Scope (`OwnerScope`) that automatically adds `WHERE owner_id = 
 
 ### Property 5: Booking status transition enforcement
 
-*For any* booking in a given status, the system SHALL only permit the following transitions: confirmed → checked_in, confirmed → cancelled, checked_in → checked_out, checked_in → cancelled. *For any* transition not in this set, the system SHALL reject the request with an error indicating the current status and why the transition is not allowed.
+*For any* booking in a given status, the system SHALL only permit the following transitions: pending → confirmed, pending → cancelled, confirmed → checked_in, confirmed → cancelled, checked_in → checked_out, checked_in → cancelled. *For any* transition not in this set, the system SHALL reject the request with an error indicating the current status and why the transition is not allowed.
 
 **Validates: Requirements 4.9**
 
@@ -856,6 +885,10 @@ A Laravel Global Scope (`OwnerScope`) that automatically adds `WHERE owner_id = 
 
 **Validates: Requirements 3.2**
 
+### Guest profile status and blacklist filtering
+
+*For any* guest record, the system SHALL expose a `profile_status` field with values `neutral`, `recurring`, or `blacklisted`. The guest list endpoint SHALL allow filtering by this status, and the guest profile endpoint SHALL return the current status with related bookings.
+
 ### Property 14: Expense requires Property link and validates optional links
 
 *For any* expense creation or update, the system SHALL require a valid property_id. *For any* optional link (unit_id, booking_id, service_provider_id, cleaning_task_id, maintenance_task_id), if provided, the linked entity SHALL belong to the same owner and be associated with the linked property. If any link is invalid, the system SHALL reject the request.
@@ -877,6 +910,10 @@ A Laravel Global Scope (`OwnerScope`) that automatically adds `WHERE owner_id = 
 ### Property 17: Dashboard outstanding balance aggregation
 
 *For any* set of bookings belonging to an owner with payment_status of "unpaid" or "partial", the dashboard outstanding balance SHALL equal the sum of `(total_amount - net_paid_amount)` across those bookings.
+
+### Property 18: Maintenance task requires a Property or Unit link
+
+*For any* maintenance task creation or update, the system SHALL require a valid `property_id` or `unit_id`. If neither is provided, the system SHALL reject the request with a validation error identifying both fields. If a provided link belongs to a different owner, the system SHALL reject the request with a not-found or ownership validation error.
 
 **Validates: Requirements 10.4**
 
@@ -948,7 +985,10 @@ All API errors follow a consistent JSON structure:
 - **Authentication tests**: Token issuance, rejection of unauthenticated requests
 - **Owner scoping tests**: Verify cross-account isolation
 - **Status transition tests**: Verify booking and task state machines
-- **Filter/search tests**: Verify query parameter handling
+- **Filter/search tests**: Verify query parameter handling, including guest status filtering, booking status/unit/date filters, and expense/task filters
+- **Property image and amenities tests**: Verify property creation/update supports amenities lists, image upload/association, and property details response includes image URLs
+- **Guest blacklist tests**: Verify guest profile status filtering and guest profile payload includes status
+- **Maintenance task validation tests**: Verify required property/unit linkage and valid owner scoping for linked entities
 
 #### Property-Based Tests — Advanced Correctness (Added Incrementally)
 - **Library**: Use a PHP property-based testing library (e.g., `eris/eris` or custom generators with PHPUnit/Pest)
@@ -964,6 +1004,8 @@ All API errors follow a consistent JSON structure:
   - Owner isolation (Property 6)
   - Validation error specificity (Property 8)
   - Uniqueness enforcement (Property 12)
+  - Guest status and blacklist filtering
+  - Maintenance task linked entity validation
   - Dashboard aggregation (Properties 16, 17)
 
 ### Frontend Testing
