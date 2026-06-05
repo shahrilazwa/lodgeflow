@@ -18,22 +18,23 @@ This implementation plan breaks the LodgeFlow Owner MVP into 7 milestones, progr
     { "id": 6, "tasks": ["2.5", "2.6"] },
     { "id": 7, "tasks": ["2.7", "2.8"] },
     { "id": 8, "tasks": ["2.9", "2.10"] },
-    { "id": 9, "tasks": ["3.1", "3.2"] },
-    { "id": 10, "tasks": ["3.3", "3.4"] },
-    { "id": 11, "tasks": ["3.5", "3.6"] },
-    { "id": 12, "tasks": ["3.7", "3.8"] },
-    { "id": 13, "tasks": ["4.1", "4.2"] },
-    { "id": 14, "tasks": ["4.3", "4.4"] },
-    { "id": 15, "tasks": ["4.5", "4.6"] },
-    { "id": 16, "tasks": ["4.7", "4.8"] },
-    { "id": 17, "tasks": ["5.1", "5.2"] },
-    { "id": 18, "tasks": ["5.3", "5.4"] },
-    { "id": 19, "tasks": ["5.5", "5.6"] },
-    { "id": 20, "tasks": ["6.1", "6.2"] },
-    { "id": 21, "tasks": ["6.3", "6.4"] },
-    { "id": 22, "tasks": ["6.5", "6.6"] },
-    { "id": 23, "tasks": ["7.1", "7.2"] },
-    { "id": 24, "tasks": ["7.3"] }
+    { "id": 9, "tasks": ["2.11", "2.12"] },
+    { "id": 10, "tasks": ["3.1", "3.2"] },
+    { "id": 11, "tasks": ["3.3", "3.4"] },
+    { "id": 12, "tasks": ["3.5", "3.6"] },
+    { "id": 13, "tasks": ["3.7", "3.8"] },
+    { "id": 14, "tasks": ["4.1", "4.2"] },
+    { "id": 15, "tasks": ["4.3", "4.4"] },
+    { "id": 16, "tasks": ["4.5", "4.6"] },
+    { "id": 17, "tasks": ["4.7", "4.8", "4.9"] },
+    { "id": 18, "tasks": ["5.1", "5.2"] },
+    { "id": 19, "tasks": ["5.3", "5.4"] },
+    { "id": 20, "tasks": ["5.5", "5.6"] },
+    { "id": 21, "tasks": ["6.1", "6.2"] },
+    { "id": 22, "tasks": ["6.3", "6.4"] },
+    { "id": 23, "tasks": ["6.5", "6.6"] },
+    { "id": 24, "tasks": ["7.1", "7.2"] },
+    { "id": 25, "tasks": ["7.3"] }
   ]
 }
 ```
@@ -280,34 +281,49 @@ This implementation plan breaks the LodgeFlow Owner MVP into 7 milestones, progr
 
 ---
 
-## Task 2.5: Implement Property Module (Model, Migration, Service, Controller)
+## Task 2.5: Implement Property Backend Schema, Service, and Ownership
 
 - **Milestone**: v0.2.0 - Auth, Properties, and Units
 - **Status**: pending
-- **Description**: Create the Property module with migration, model, service, form requests, policy, controller, and routes. Implement full CRUD plus activate/deactivate. Service uses explicit `owner_id` filtering.
+- **Description**: Create the Property backend module with migration, model, service, form requests, and policy. Add support for optional property galleries and amenities as part of the property schema.
 - **Acceptance Criteria**:
   - [ ] Migration creates `properties` table matching design schema
   - [ ] `Property` model with `HasOwner` trait, fillable fields, relationships (belongsTo Owner, hasMany Unit)
+  - [ ] `Property` model supports `amenities` and `photo_urls` fields
   - [ ] `PropertyPolicy` extends base policy for ownership checks
   - [ ] `PropertyService` with methods: `listForOwner`, `create`, `show`, `update`, `deactivate`, `activate`
   - [ ] All service queries explicitly filter by `owner_id`
-  - [ ] `StorePropertyRequest` validates: name (required, max:100), address (required, max:255), description (nullable, max:1000)
+  - [ ] `StorePropertyRequest` validates: name (required, max:100), address (required, max:255), description (nullable, max:1000), amenities (nullable,array), amenities.* (string,max:100), photo_urls (nullable,array), photo_urls.* (url,max:255)
   - [ ] `UpdatePropertyRequest` with same validation rules
-  - [ ] `PropertyController` with index, store, show, update, deactivate, activate actions
-  - [ ] Routes registered: GET/POST `/properties`, GET/PUT `/properties/{id}`, PATCH `/properties/{id}/deactivate`, PATCH `/properties/{id}/activate`
-  - [ ] All routes protected by `auth:sanctum` middleware
-- **Commit reminder**: Commit with message "feat: implement property module with crud and activate/deactivate"
+- **Commit reminder**: Commit with message "feat: implement property backend schema with gallery and amenities support"
 
 ---
 
-## Task 2.6: Write Feature Tests for Property API
+## Task 2.6: Implement Property Controller, Routes, and Activation
 
 - **Milestone**: v0.2.0 - Auth, Properties, and Units
 - **Status**: pending
-- **Description**: Write feature tests for all Property API endpoints covering CRUD operations, validation, owner scoping, and deactivation logic.
+- **Description**: Build Property API controllers and route definitions. Implement property activation/deactivation behavior and owner-scoped access control.
+- **Acceptance Criteria**:
+  - [ ] `PropertyController` with index, store, show, update, deactivate, activate actions
+  - [ ] Routes registered: GET/POST `/properties`, GET/PUT `/properties/{id}`, PATCH `/properties/{id}/deactivate`, PATCH `/properties/{id}/activate`
+  - [ ] All routes protected by `auth:sanctum` middleware
+  - [ ] Deactivate marks property inactive, preserves existing bookings, and prevents future bookings for units under that property
+  - [ ] Owner-scoped access returns 404 for other owners' properties
+- **Commit reminder**: Commit with message "feat: implement property api controller and activation routes"
+
+---
+
+## Task 2.7: Write Feature Tests for Property API
+
+- **Milestone**: v0.2.0 - Auth, Properties, and Units
+- **Status**: pending
+- **Description**: Write feature tests for the Property API covering schema validation, owner scoping, activation status, and gallery/amenities support.
 - **Acceptance Criteria**:
   - [ ] Test: create property with valid data returns 201
   - [ ] Test: create property without name/address returns 422 with field errors
+  - [ ] Test: create property with valid amenities array returns 201
+  - [ ] Test: create property with invalid photo_urls returns 422
   - [ ] Test: list properties returns only authenticated owner's properties
   - [ ] Test: show property belonging to another owner returns 404
   - [ ] Test: update property saves changes correctly
@@ -319,11 +335,11 @@ This implementation plan breaks the LodgeFlow Owner MVP into 7 milestones, progr
 
 ---
 
-## Task 2.7: Implement Unit Module (Model, Migration, Service, Controller)
+## Task 2.8: Implement Unit Backend Schema, Service, and Ownership
 
 - **Milestone**: v0.2.0 - Auth, Properties, and Units
 - **Status**: pending
-- **Description**: Create the Unit module with migration, model, service, form requests, policy, controller, and routes. Units are nested under properties. Implement CRUD plus activate/deactivate. Enforce unique name per property constraint.
+- **Description**: Create the Unit backend module with migration, model, service, form requests, and policy. Units are nested under properties and require owner scoping.
 - **Acceptance Criteria**:
   - [ ] Migration creates `units` table matching design schema with UNIQUE(property_id, name)
   - [ ] `Unit` model with `HasOwner` trait, fillable fields, relationships (belongsTo Owner, belongsTo Property, hasMany Booking)
@@ -331,14 +347,26 @@ This implementation plan breaks the LodgeFlow Owner MVP into 7 milestones, progr
   - [ ] `UnitService` with methods: `listForProperty`, `create`, `show`, `update`, `deactivate`, `activate`
   - [ ] Service validates property belongs to owner before creating unit
   - [ ] `StoreUnitRequest` validates: name (required, max:100), type (required, in:room,suite,dormitory_bed,entire_unit), description (nullable, max:500)
-  - [ ] Controller handles nested route: `POST /properties/{propertyId}/units`
-  - [ ] Routes: GET/POST `/properties/{propertyId}/units`, GET/PUT `/units/{id}`, PATCH `/units/{id}/deactivate`, PATCH `/units/{id}/activate`
-  - [ ] Duplicate name within same property returns 422
-- **Commit reminder**: Commit with message "feat: implement unit module with crud and property nesting"
+- **Commit reminder**: Commit with message "feat: implement unit backend schema with property scoping"
 
 ---
 
-## Task 2.8: Write Feature Tests for Unit API
+## Task 2.9: Implement Unit Controller, Routes, and Activation
+
+- **Milestone**: v0.2.0 - Auth, Properties, and Units
+- **Status**: pending
+- **Description**: Build Unit API controllers and routes. Implement nested creation under properties, activation/deactivation, and owner-scoped access control.
+- **Acceptance Criteria**:
+  - [ ] Controller handles nested route: `POST /properties/{propertyId}/units`
+  - [ ] Routes: GET/POST `/properties/{propertyId}/units`, GET/PUT `/units/{id}`, PATCH `/units/{id}/deactivate`, PATCH `/units/{id}/activate`
+  - [ ] Duplicate name within same property returns 422
+  - [ ] Deactivate/activate endpoints update unit status and preserve booking history
+  - [ ] Owner-scoped access returns 404 for other owners' units
+- **Commit reminder**: Commit with message "feat: implement unit api controller and activation routes"
+
+---
+
+## Task 2.10: Write Feature Tests for Unit API
 
 - **Milestone**: v0.2.0 - Auth, Properties, and Units
 - **Status**: pending
@@ -358,28 +386,26 @@ This implementation plan breaks the LodgeFlow Owner MVP into 7 milestones, progr
 
 ---
 
-## Task 2.9: Implement Property and Unit Frontend Screens
+## Task 2.11: Implement Property and Unit Frontend Screens with Gallery and Amenities
 
 - **Milestone**: v0.2.0 - Auth, Properties, and Units
 - **Status**: pending
-- **Description**: Build the frontend screens for Properties and Units using MYDS components and TanStack Query. Include list views with status badges, create/edit forms with validation, and deactivate/activate actions.
+- **Description**: Build the frontend screens for Properties and Units using MYDS components and TanStack Query. Include property gallery and amenities display on detail pages.
 - **Acceptance Criteria**:
-  - [ ] Login page with email/password form, stores token on success
-  - [ ] Register page with name/email/password form
-  - [ ] Properties list page: displays all properties with active/inactive badges, link to create
-  - [ ] Property create/edit form: name, address, description fields with client-side validation
-  - [ ] Property detail page with deactivate/activate button
-  - [ ] Units list page (nested under property): displays units with type and status
-  - [ ] Unit create/edit form: name, type dropdown, description
+  - [ ] Properties list page displays all properties with active/inactive badges and first gallery photo if available
+  - [ ] Property detail page shows a photo gallery slider or grid and amenities list
+  - [ ] Property create/edit form includes name, address, description, amenities, and photo URLs
+  - [ ] Units list page (nested under property) displays units with type and status
+  - [ ] Unit create/edit form includes name, type dropdown, description
   - [ ] Unit detail page with deactivate/activate button
   - [ ] All API calls use TanStack Query hooks (useQuery, useMutation)
   - [ ] Loading states and error handling displayed using MYDS components
   - [ ] Toast notifications on successful create/update/deactivate actions
-- **Commit reminder**: Commit with message "feat: implement property and unit frontend screens with myds"
+- **Commit reminder**: Commit with message "feat: implement property and unit frontend screens with gallery and amenities"
 
 ---
 
-## Task 2.10: Implement Frontend Auth Flow (Login, Register, Logout)
+## Task 2.12: Implement Frontend Auth Flow (Login, Register, Logout)
 
 - **Milestone**: v0.2.0 - Auth, Properties, and Units
 - **Status**: pending
@@ -416,7 +442,7 @@ This implementation plan breaks the LodgeFlow Owner MVP into 7 milestones, progr
   - [ ] `GuestPolicy` for ownership checks
   - [ ] `GuestService` with methods: `listForOwner` (with search), `create`, `show` (with bookings), `update`
   - [ ] Search supports filtering by `full_name` (LIKE) and `phone` (LIKE)
-  - [ ] `StoreGuestRequest` validates: full_name (required, max:100), phone (required, regex:7-15 digits), email (nullable, max:254, email format), identification_number (nullable, max:50)
+  - [ ] `StoreGuestRequest` validates: full_name (required, max:100), phone (required, regex:7-15 digits), email (nullable, max:254, email format), address (nullable, max:255), identification_number (nullable, max:50)
   - [ ] `GuestController` with index (search), store, show, update actions
   - [ ] Routes: GET/POST `/guests`, GET/PUT `/guests/{id}`
   - [ ] Show endpoint includes guest's bookings ordered by check_in_date desc
@@ -450,15 +476,17 @@ This implementation plan breaks the LodgeFlow Owner MVP into 7 milestones, progr
 
 - **Milestone**: v0.3.0 - Guests and Bookings
 - **Status**: pending
-- **Description**: Create the Booking module with migration, model, and base service. Implement booking creation with date overlap validation, the CHECK constraint for dates, and initial status of "confirmed". Payment status defaults to "unpaid".
+- **Description**: Create the Booking module with migration, model, and base service. Implement booking creation with date overlap validation, the CHECK constraint for dates, expected occupancy and special request capture, and initial status of "confirmed". Payment status defaults to "unpaid".
 - **Acceptance Criteria**:
   - [ ] Migration creates `bookings` table matching design schema with CHECK(check_out_date > check_in_date)
   - [ ] `Booking` model with `HasOwner` trait, fillable fields, casts (dates, decimals), relationships
+  - [ ] `Booking` model supports `expected_occupancy` and `special_requests`
   - [ ] `BookingPolicy` for ownership checks
   - [ ] `BookingService::create()` validates: unit is active, unit's property is active, no date overlap with confirmed/checked_in bookings
   - [ ] Date overlap check: existing booking overlaps if `existing.check_in < new.check_out AND existing.check_out > new.check_in`
-  - [ ] `StoreBookingRequest` validates: unit_id (required, exists), guest_id (required, exists), check_in_date (required, date), check_out_date (required, date, after:check_in_date), total_amount (required, decimal, between:0.01,999999999.99)
+  - [ ] `StoreBookingRequest` validates: unit_id (required, exists), guest_id (required, exists), check_in_date (required, date), check_out_date (required, date, after:check_in_date), total_amount (required, decimal, between:0.01,999999999.99), expected_occupancy (required, integer, min:1, max:20), special_requests (nullable, max:1000)
   - [ ] New bookings get status "confirmed" and payment_status "unpaid"
+  - [ ] Booking create stores expected occupancy and special requests for later manual expense/payment handling
   - [ ] Overlap conflict returns 409 with details of conflicting booking
 - **Commit reminder**: Commit with message "feat: implement booking model migration and creation with overlap validation"
 
@@ -477,7 +505,7 @@ This implementation plan breaks the LodgeFlow Owner MVP into 7 milestones, progr
   - [ ] Invalid transitions return 422 with current status and reason
   - [ ] `BookingController` with index, store, show, update, checkIn, checkOut, cancel actions
   - [ ] List endpoint supports filters: status, unit_id, date range (check_in_date)
-  - [ ] Show endpoint includes payment records
+  - [ ] Show endpoint includes payment records and booking-level expected occupancy / special requests
   - [ ] Routes: GET/POST `/bookings`, GET/PUT `/bookings/{id}`, PATCH `/bookings/{id}/check-in`, PATCH `/bookings/{id}/check-out`, PATCH `/bookings/{id}/cancel`
   - [ ] Booking for inactive unit returns 422
   - [ ] Booking for unit under inactive property returns 422
@@ -496,6 +524,7 @@ This implementation plan breaks the LodgeFlow Owner MVP into 7 milestones, progr
   - [ ] Test: create booking with overlapping dates returns 409
   - [ ] Test: create booking for inactive unit returns 422
   - [ ] Test: create booking for unit under inactive property returns 422
+  - [ ] Test: create booking with expected occupancy and special requests succeeds
   - [ ] Test: check-in from "confirmed" succeeds
   - [ ] Test: check-in from "checked_out" returns 422
   - [ ] Test: check-out from "checked_in" succeeds and dispatches cleaning job
@@ -518,7 +547,7 @@ This implementation plan breaks the LodgeFlow Owner MVP into 7 milestones, progr
 - **Description**: Build the frontend screens for Guests using MYDS components. Include list with search, create/edit forms, and profile view with booking history.
 - **Acceptance Criteria**:
   - [ ] Guests list page with search input (filters by name or phone)
-  - [ ] Guest create form: full_name, phone, email, identification_number with validation
+  - [ ] Guest create form: full_name, phone, email, address, identification_number with validation
   - [ ] Guest edit form with pre-populated fields
   - [ ] Guest profile page showing contact details and booking history (most recent first)
   - [ ] Empty state message when no guests found
@@ -536,9 +565,9 @@ This implementation plan breaks the LodgeFlow Owner MVP into 7 milestones, progr
 - **Description**: Build the frontend screens for Bookings using MYDS components. Include list with filters, create/edit forms, detail view with payment summary, and status transition buttons.
 - **Acceptance Criteria**:
   - [ ] Bookings list page with filters: status dropdown, unit dropdown, date range picker
-  - [ ] Booking create form: guest selector, unit selector, check-in date, check-out date, total amount
+  - [ ] Booking create form: guest selector, unit selector, check-in date, check-out date, expected occupancy, special requests, total amount
   - [ ] Booking edit form (only enabled when status is "confirmed")
-  - [ ] Booking detail page showing: dates, guest, unit, status badge, payment status badge, payment history
+  - [ ] Booking detail page showing: dates, guest, unit, expected occupancy, special requests, status badge, payment status badge, payment history
   - [ ] Status transition buttons: "Check In", "Check Out", "Cancel" (shown based on current status)
   - [ ] Overlap conflict error displayed as alert
   - [ ] Outstanding balance and overpaid amount displayed on detail page
@@ -729,6 +758,20 @@ This implementation plan breaks the LodgeFlow Owner MVP into 7 milestones, progr
   - [ ] Error message when deletion blocked by linked expenses
   - [ ] All API calls use TanStack Query hooks
 - **Commit reminder**: Commit with message "feat: implement service provider frontend screens"
+
+---
+
+## Task 4.9: Add Booking Special Request Expense Tracking Note
+
+- **Milestone**: v0.4.0 - Payments and Expenses
+- **Status**: pending
+- **Description**: Add an explicit expense/payment workflow note for special booking requests such as barbeque, late check-in, or other extra services, so the Owner can manually track these requests in expenses and payments without requiring online payment gateway integration.
+- **Acceptance Criteria**:
+  - [ ] Task documentation includes a note that booking `special_requests` may trigger separate expense/payment handling in MVP
+  - [ ] Expense creation supports optional linkage to a Booking and can capture special-request related costs
+  - [ ] Payment creation supports recording payments/refunds that correspond to special requests when no online payment gateway exists
+  - [ ] UI and API task notes mention that special requests should be visible on booking detail pages for Owner review
+- **Commit reminder**: Commit with message "docs: add booking special request expense tracking note"
 
 ---
 
@@ -1070,37 +1113,3 @@ This implementation plan breaks the LodgeFlow Owner MVP into 7 milestones, progr
 - No Repository layer — Services query Eloquent directly
 - Owner scoping via explicit `owner_id` filtering in services (not global scope)
 - Queue jobs receive `owner_id` as constructor parameter (never use `auth()->id()` in jobs)
-
-## Task Dependency Graph
-
-```json
-{
-  "waves": [
-    { "id": 0, "tasks": ["1.1", "1.2"] },
-    { "id": 1, "tasks": ["1.3", "1.4", "1.5"] },
-    { "id": 2, "tasks": ["1.6", "1.7", "1.8"] },
-    { "id": 3, "tasks": ["1.9", "1.10"] },
-    { "id": 4, "tasks": ["2.1", "2.2"] },
-    { "id": 5, "tasks": ["2.3", "2.4"] },
-    { "id": 6, "tasks": ["2.5", "2.6"] },
-    { "id": 7, "tasks": ["2.7", "2.8"] },
-    { "id": 8, "tasks": ["2.9", "2.10"] },
-    { "id": 9, "tasks": ["3.1", "3.2"] },
-    { "id": 10, "tasks": ["3.3", "3.4"] },
-    { "id": 11, "tasks": ["3.5", "3.6"] },
-    { "id": 12, "tasks": ["3.7", "3.8"] },
-    { "id": 13, "tasks": ["4.1", "4.2"] },
-    { "id": 14, "tasks": ["4.3", "4.4"] },
-    { "id": 15, "tasks": ["4.5", "4.6"] },
-    { "id": 16, "tasks": ["4.7", "4.8"] },
-    { "id": 17, "tasks": ["5.1", "5.2"] },
-    { "id": 18, "tasks": ["5.3", "5.4"] },
-    { "id": 19, "tasks": ["5.5", "5.6"] },
-    { "id": 20, "tasks": ["6.1", "6.2"] },
-    { "id": 21, "tasks": ["6.3", "6.4"] },
-    { "id": 22, "tasks": ["6.5", "6.6"] },
-    { "id": 23, "tasks": ["7.1", "7.2"] },
-    { "id": 24, "tasks": ["7.3"] }
-  ]
-}
-```
